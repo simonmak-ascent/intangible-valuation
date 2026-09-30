@@ -64,7 +64,7 @@ class TestServerToolDiscovery:
             assert "omit the rest" in desc
             assert "rounded to 2 decimals" in desc
             assert "returns an error instead of a value" in desc
-            assert "side-effect-free" in desc
+            assert "no external calls" in desc
 
     def test_every_parameter_is_documented(self):
         for tool in list_tools():

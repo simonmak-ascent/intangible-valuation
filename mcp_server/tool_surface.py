@@ -1285,8 +1285,8 @@ def describe(tool: dict[str, Any]) -> str:
         "method and omit the rest (documented defaults apply where defined)."
     )
     lines.append(
-        "Deterministic and side-effect-free: identical inputs always return an identical value, with numeric "
-        "results rounded to 2 decimals. Parameters belonging to other methods of this tool are accepted and ignored."
+        "Pure arithmetic: no I/O and no external calls, and numeric results are returned rounded to 2 decimals. "
+        "Parameters belonging to other methods of this tool are accepted and ignored."
     )
     lines.append(
         "Supplying an unknown method, or leaving unset a parameter that the chosen method requires, returns an "
