@@ -61,7 +61,8 @@ class TestServerToolDiscovery:
         for tool in list_tools():
             desc = tool["description"]
             assert "Method selects the formula" in desc
-            assert "leave the rest unset" in desc
+            assert "omit the rest" in desc
+            assert "rounded to 2 decimals" in desc
             assert "returns an error instead of a value" in desc
             assert "side-effect-free" in desc
 

@@ -1277,16 +1277,16 @@ def describe(tool: dict[str, Any]) -> str:
         lines.append(tool["use"])
     if tool.get("alt"):
         lines.append(tool["alt"])
-    lines.append("Parameters apply per method: " + _method_parameter_map(tool))
+    lines.append("Per method: " + _method_parameter_map(tool))
     if tool.get("constraints"):
         lines.append(tool["constraints"])
     lines.append(
-        "Only method is required; every other parameter is method-dependent, so supply just the ones named for "
-        "the selected method and leave the rest unset."
+        "Only method is required; other parameters are method-dependent, so supply those named for the selected "
+        "method and omit the rest (documented defaults apply where defined)."
     )
     lines.append(
-        "Deterministic and side-effect-free: identical inputs always return an identical value. Parameters "
-        "belonging to other methods of this tool are accepted and ignored."
+        "Deterministic and side-effect-free: identical inputs always return an identical value, with numeric "
+        "results rounded to 2 decimals. Parameters belonging to other methods of this tool are accepted and ignored."
     )
     lines.append(
         "Supplying an unknown method, or leaving unset a parameter that the chosen method requires, returns an "
