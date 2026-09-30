@@ -38,5 +38,14 @@
         "type": "stdio"
       }
     }
+  ],
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/simonplmak-cloud/intangible-valuation/main/public/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    }
   ]
 }
