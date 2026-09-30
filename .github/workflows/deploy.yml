@@ -1,56 +1,44 @@
-name: Deploy to Vercel
+name: Deploy Canary
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-  pull_request:
-    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  test-python:
+  canary:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]"
-      - run: ruff check .
-      - run: mypy src/
-      - run: pytest --cov=src --cov-report=term-missing -v
+      - name: Wait for Vercel production deploy
+        run: |
+          echo "Waiting up to 10 minutes for the production deploy to become healthy..."
+          for i in $(seq 1 40); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://intangible-valuation.simonmak.com/ || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "Home 200 after ${i}x15s"
+              exit 0
+            fi
+            echo "attempt $i: home returned $code — waiting 15s"
+            sleep 15
+          done
+          echo "Timed out waiting for production deploy"
+          exit 1
 
-  test-webapp:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: webapp
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-          cache-dependency-path: webapp/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test -- --coverage
+      - name: Hosted MCP endpoint health (14 tools)
+        run: |
+          body=$(curl -sf https://intangible-valuation.simonmak.com/api/mcp)
+          echo "$body"
+          echo "$body" | grep -q '"tools": 14' || (echo "MCP endpoint did not report 14 tools" && exit 1)
 
-  deploy:
-    needs: [test-python, test-webapp]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: --prod
+      - name: Hosted MCP end-to-end (tools/call)
+        run: |
+          body=$(curl -sf -X POST https://intangible-valuation.simonmak.com/api/mcp \
+            -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"valuation_time_value","arguments":{"method":"present_value","future_value":1000000,"discount_rate":0.10,"periods":5}}}')
+          echo "$body"
+          echo "$body" | grep -q '"value"' || (echo "MCP tools/call canary failed: no value in response" && exit 1)
