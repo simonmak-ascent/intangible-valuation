@@ -128,6 +128,16 @@ def test_server_manifest_declares_remote_and_package() -> None:
     assert package["transport"]["type"] == "stdio"
 
 
+def test_readme_declares_mcp_name_for_ownership() -> None:
+    """The Official MCP Registry requires the server name in the PyPI README."""
+    name = _load_json(SERVER_JSON)["name"]
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert f"mcp-name: {name}" in readme, (
+        "README.md must carry the MCP Registry ownership marker "
+        f"'mcp-name: {name}' for the PyPI package to be published"
+    )
+
+
 # --- AC-3: single version source of truth -----------------------------------
 
 

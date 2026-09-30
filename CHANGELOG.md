@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] — 2026-10-01
+
+### Fixed
+- Added the MCP Registry ownership marker
+  (`<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->`) to the package
+  README so the PyPI stdio package passes ownership validation and publishes to the
+  Official MCP Registry.
+
 ## [2.0.0] — 2026-09-30
 
 ### MCP 2.0.0 — Glama-ready tool surface

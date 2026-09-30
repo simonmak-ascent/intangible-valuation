@@ -12,6 +12,8 @@
 [![Glama MCP](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation)
 [![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
 
+<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->
+
 ## Overview
 
 A production-grade Python library for intangible asset valuation, implementing every formula from the **[Intangible Asset Valuation](https://www.amazon.com/Intangible-Asset-Valuation-Comprehensive-Technology/dp/B0FZ8742R1)** textbook by Simon Mak, William Yuen, Paul Wu, and Wayne Hu (Valuation in Practice Series, Ascent Partners). Designed for developers, financial analysts, accountants, and AI agents who need auditable, structured valuation computations for ASC 805 / IFRS 3 compliant workflows.
