@@ -436,6 +436,10 @@ TOOLS: list[dict[str, Any]] = [
             "For uneven multi-period cash flows use valuation_income_methods; for rate construction use "
             "valuation_discount_rate."
         ),
+        "constraints": (
+            "Rates and growth are decimals (0.10 = 10%); for terminal_value_gordon_growth the discount rate must "
+            "exceed the perpetual growth rate."
+        ),
         "methods": [
             _method(
                 "present_value",
@@ -514,6 +518,10 @@ TOOLS: list[dict[str, Any]] = [
         "alt": (
             "For a cross-border rate with currency and country premia use method currency_adjusted; for the "
             "cash flows the rate discounts use valuation_time_value."
+        ),
+        "constraints": (
+            "All rates and premiums are decimals; wacc requires both equity_value and debt_value, and "
+            "dlom_finnerty volatility is an annualized decimal."
         ),
         "methods": [
             _method(
@@ -639,6 +647,10 @@ TOOLS: list[dict[str, Any]] = [
         "alt": (
             "For income-based excess earnings use valuation_income_methods; for royalty-rate selection and "
             "adjustment use valuation_royalty_analysis."
+        ),
+        "constraints": (
+            "Each comparable is {revenue, multiple}; comparable_transactions applies the comparable multiple to "
+            "subject_revenue."
         ),
         "methods": [
             _method(
@@ -898,6 +910,10 @@ TOOLS: list[dict[str, Any]] = [
             "For the workforce and key-person assets use valuation_human_capital; for technology assets use "
             "valuation_technology."
         ),
+        "constraints": (
+            "retention_rate and enforcement_probability are in [0,1]; projection_period sets the number of "
+            "discounted periods."
+        ),
         "methods": [
             _method(
                 "customer_relationships",
@@ -954,6 +970,7 @@ TOOLS: list[dict[str, Any]] = [
             "attrition into a replacement cost."
         ),
         "alt": ("For customer-related assets use valuation_customer; for technology assets use valuation_technology."),
+        "constraints": ("attrition_rate is in [0,1]; productivity_factor scales the replacement cost (1.0 = parity)."),
         "methods": [
             _method(
                 "assembled_workforce",
@@ -1192,6 +1209,7 @@ TOOLS: list[dict[str, Any]] = [
             "For royalty-rate benchmarking to set a rate use valuation_royalty_analysis; for the substantive "
             "asset valuation use valuation_ip or valuation_income_methods."
         ),
+        "constraints": "uncontrolled_prices must contain at least one comparable price for the arm's-length range.",
         "methods": [
             _method(
                 "cup_transfer_price",
@@ -1263,7 +1281,10 @@ def describe(tool: dict[str, Any]) -> str:
         "Only method is required; every other parameter is method-dependent, so supply just the ones named for "
         "the selected method and leave the rest unset."
     )
-    lines.append("Deterministic and side-effect-free: identical inputs always return an identical value.")
+    lines.append(
+        "Deterministic and side-effect-free: identical inputs always return an identical value. Parameters "
+        "belonging to other methods of this tool are accepted and ignored."
+    )
     lines.append(
         "Supplying an unknown method, or leaving unset a parameter that the chosen method requires, returns an "
         "error instead of a value."
