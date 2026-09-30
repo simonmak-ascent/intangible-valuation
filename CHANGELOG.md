@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### MCP 2.0.0 — Glama-ready tool surface
+- Folded 49 flat MCP tools into **14 method-switched family tools** defined once in
+  `mcp_server/tool_surface.py`; the stdio server is generated from it and the hosted
+  Streamable-HTTP endpoint (`api/mcp.py`) shares the same surface.
+- Every tool now carries a `title`, `outputSchema`, MCP `annotations`, `tags`, fully
+  documented parameters, and TDQS-optimized descriptions (purpose, usage, alternatives,
+  behaviour, per-method parameter mapping). `mcp-tdqs` lint: 0 errors, 100% param coverage.
+- Added registry/reproducibility packaging: `glama.json`, `server.json`, `Dockerfile`,
+  `mcp_server/` package; published to the Official MCP Registry as
+  `io.github.simonplmak-cloud/intangible-valuation`.
+- Added TDQS, CodeQL, OpenSSF Scorecard, scheduled pip-audit and MkDocs `--strict`
+  workflows, plus a generated-server determinism gate and a production deploy canary.
+- Exposed `/api/*` (hosted MCP + calculator) publicly and attached the canonical
+  `intangible-valuation.simonmak.com` domain.
+- Bumped `vitest` to 4.1.11, clearing two Dependabot advisories.
+- 1082 tests, 91% coverage.
+
 ## [1.0.3] — 2026-05-21
 
 ### Authority Milestones
