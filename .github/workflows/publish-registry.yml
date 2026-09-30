@@ -23,6 +23,12 @@ jobs:
       - name: Validate server.json
         run: mcp-publisher validate
 
+      # A release fires this workflow and the PyPI publish at the same time. The registry
+      # rejects a package whose version is not yet on PyPI, so wait for the declared version
+      # (and its mcp-name ownership marker) before publishing.
+      - name: Wait for PyPI to serve the package version and ownership marker
+        run: python3 scripts/wait_for_pypi.py --manifest server.json
+
       - name: Authenticate (GitHub OIDC)
         run: mcp-publisher login github-oidc
 

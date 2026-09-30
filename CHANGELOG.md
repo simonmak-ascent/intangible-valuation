@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **MCP Registry publish no longer races PyPI.** `publish-registry.yml` waits for the
+  package version declared in `server.json` to be served by PyPI and to carry the
+  `mcp-name:` ownership marker before calling `mcp-publisher publish`, via
+  `scripts/wait_for_pypi.py`. A release now publishes to the registry on the first run.
+
 ## [2.0.1] — 2026-10-01
 
 ### Fixed
