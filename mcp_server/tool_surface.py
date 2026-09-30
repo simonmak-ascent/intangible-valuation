@@ -1281,17 +1281,14 @@ def describe(tool: dict[str, Any]) -> str:
     if tool.get("constraints"):
         lines.append(tool["constraints"])
     lines.append(
-        "Only method is required; other parameters are method-dependent, so supply those named for the selected "
-        "method and omit the rest (documented defaults apply where defined)."
+        "Only method is required; all other parameters are method-dependent — supply those the selected method "
+        "names and omit the rest (defaults apply where defined). Rates and premiums are decimals (0.10 = 10%)."
     )
     lines.append(
-        "Pure arithmetic: no I/O and no external calls, and numeric results are returned rounded to 2 decimals. "
-        "Parameters belonging to other methods of this tool are accepted and ignored."
+        "Pure arithmetic: no I/O and no external calls, rounded to 2 decimals; parameters belonging to other "
+        "methods are accepted and ignored."
     )
-    lines.append(
-        "Supplying an unknown method, or leaving unset a parameter that the chosen method requires, returns an "
-        "error instead of a value."
-    )
+    lines.append("An unknown method, or a missing method-required parameter, returns an error instead of a value.")
     return " ".join(lines)
 
 
