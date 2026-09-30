@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.simonplmak-cloud/intangible-valuation",
   "title": "Intangible Asset Valuation MCP Server",
-  "description": "14 MCP tools for intangible asset valuation: time value, discount-rate construction, cost/market/income approaches, relief from royalty, MPEEM, patents, trademarks, technology, data, platforms, customer and workforce assets, purchase price allocation, goodwill and impairment testing, royalty analysis, Monte Carlo and decision trees, and transfer-pricing / litigation. 124+ textbook formulas, one method argument away.",
+  "description": "Intangible asset valuation: 14 tools, 124+ formulas for IP, technology, goodwill, PPA, impairment.",
   "version": "2.0.0",
   "repository": {
     "url": "https://github.com/simonplmak-cloud/intangible-valuation",
