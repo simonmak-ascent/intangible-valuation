@@ -33,4 +33,20 @@ jobs:
         run: mcp-publisher login github-oidc
 
       - name: Publish to registry
-        run: mcp-publisher publish
+        run: |
+          # mcp-publisher fails with a 400 "cannot publish duplicate version" when the
+          # version in server.json is already registered. Treat that as an idempotent
+          # re-run (matching the PyPI workflow's skip-existing behaviour) instead of a
+          # hard failure, so a re-dispatch of an already-published release is green.
+          set +e
+          output=$(mcp-publisher publish 2>&1)
+          status=$?
+          echo "$output"
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          if printf '%s' "$output" | grep -q "cannot publish duplicate version"; then
+            echo "::notice::Version already published — treating as success (idempotent re-run)."
+            exit 0
+          fi
+          exit "$status"
