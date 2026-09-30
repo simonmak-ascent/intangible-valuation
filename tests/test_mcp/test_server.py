@@ -148,6 +148,65 @@ class TestDispatch:
         assert isinstance(result["value"], (int, float))
 
 
+class TestProtocolStructuredOutput:
+    """Regression: structured output must satisfy the declared outputSchema.
+
+    The shared ``OUTPUT_SCHEMA`` previously declared ``steps`` as an array of
+    objects while results carry ``list[str]``, so every protocol-level
+    ``tools/call`` (e.g. on Glama) failed with
+    "Structured content does not match the tool's output schema".
+    """
+
+    @staticmethod
+    def _call(name: str, args: dict):
+        from fastmcp import Client
+
+        async def run():
+            async with Client(mcp) as client:
+                return await client.call_tool(name, args)
+
+        return asyncio.run(run())
+
+    @staticmethod
+    def _data(result):
+        return getattr(result, "structured_content", None) or getattr(result, "data", None)
+
+    def test_time_value_validates_against_output_schema(self):
+        from mcp_server.tool_surface import OUTPUT_SCHEMA
+
+        result = self._call(
+            "valuation_time_value",
+            {"method": "present_value", "future_value": 500_000, "discount_rate": 0.10, "periods": 8},
+        )
+        data = self._data(result)
+        assert data is not None
+        assert data["value"] == pytest.approx(233_253.69)
+        assert isinstance(data["steps"], list)
+        assert all(isinstance(step, str) for step in data["steps"])
+
+        jsonschema = pytest.importorskip("jsonschema")
+        jsonschema.validate(instance=data, schema=OUTPUT_SCHEMA)
+
+    def test_simulation_validates_against_output_schema(self):
+        from mcp_server.tool_surface import OUTPUT_SCHEMA
+
+        result = self._call(
+            "valuation_simulation",
+            {
+                "method": "monte_carlo",
+                "input_distributions": [{"name": "a", "distribution": "normal", "params": {"mean": 1.0, "std": 0.1}}],
+                "iterations": 1000,
+                "seed": 7,
+            },
+        )
+        data = self._data(result)
+        assert data is not None
+        assert isinstance(data["value"], (int, float))
+
+        jsonschema = pytest.importorskip("jsonschema")
+        jsonschema.validate(instance=data, schema=OUTPUT_SCHEMA)
+
+
 class TestServerImport:
     """Test that server module imports correctly."""
 

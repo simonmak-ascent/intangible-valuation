@@ -49,8 +49,8 @@ OUTPUT_SCHEMA: dict[str, Any] = {
         "formula_reference": {"type": "string", "description": "Mathematical formula or reference applied."},
         "steps": {
             "type": "array",
-            "items": {"type": "object"},
-            "description": "Intermediate calculation steps for traceability.",
+            "items": {},
+            "description": "Intermediate calculation steps for traceability (one string per step).",
         },
         "assumptions": {
             "description": "Modelling assumptions applied (list of strings or key/value object).",
