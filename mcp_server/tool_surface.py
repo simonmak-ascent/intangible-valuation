@@ -89,21 +89,21 @@ PARAMS: dict[str, dict[str, Any]] = {
     # discount rates
     "risk_free_rate": {"type": "number", "description": "Risk-free rate as a decimal (0.04 = 4%)."},
     "equity_risk_premium": {"type": "number", "description": "Equity risk premium as a decimal (0.06 = 6%)."},
-    "size_premium": {"type": "number", "description": "Small-size premium as a decimal.", "default": 0.0},
-    "industry_risk_premium": {"type": "number", "description": "Industry risk premium as a decimal.", "default": 0.0},
+    "size_premium": {"type": "number", "description": "Small-size premium as a decimal (e.g. 0.03 = 3%).", "default": 0.0},
+    "industry_risk_premium": {"type": "number", "description": "Industry risk premium as a decimal (e.g. 0.02 = 2%).", "default": 0.0},
     "specific_risk_premium": {
         "type": "number",
-        "description": "Company-specific risk premium as a decimal.",
+        "description": "Company-specific risk premium as a decimal (e.g. 0.03 = 3%).",
         "default": 0.0,
     },
     "beta": {"type": "number", "description": "Systematic risk beta (market = 1.0)."},
     "market_return": {"type": "number", "description": "Expected market return as a decimal (0.10 = 10%)."},
     "equity_value": {"type": "number", "description": "Market value of equity E, in currency units."},
     "debt_value": {"type": "number", "description": "Market value of debt D, in currency units."},
-    "cost_of_equity": {"type": "number", "description": "Cost of equity Re as a decimal."},
-    "cost_of_debt": {"type": "number", "description": "Pre-tax cost of debt Rd as a decimal."},
+    "cost_of_equity": {"type": "number", "description": "Cost of equity Re as a decimal (e.g. 0.12 = 12%)."},
+    "cost_of_debt": {"type": "number", "description": "Pre-tax cost of debt Rd as a decimal (e.g. 0.06 = 6%)."},
     "tax_rate": {"type": "number", "description": "Marginal tax rate as a decimal (0.25 = 25%)."},
-    "useful_life": {"type": "integer", "description": "Useful life in years n."},
+    "useful_life": {"type": "integer", "description": "Useful life in years n (integer ≥ 1)."},
     "asset_value": {
         "type": "number",
         "description": "Asset value the tax amortization benefit is computed on, in currency units.",
@@ -116,14 +116,14 @@ PARAMS: dict[str, dict[str, Any]] = {
         "type": "number",
         "description": "Controlling-interest share price or value, in currency units.",
     },
-    "restricted_period": {"type": "number", "description": "Restricted / marketability period in years t."},
+    "restricted_period": {"type": "number", "description": "Restricted / marketability period in years t (≥ 0)."},
     "volatility": {"type": "number", "description": "Annualized volatility sigma as a decimal (0.30 = 30%)."},
     "base_rate": {
         "type": "number",
-        "description": "Base discount rate before currency/country adjustment, as a decimal.",
+        "description": "Base discount rate before currency/country adjustment, as a decimal (e.g. 0.12 = 12%).",
     },
-    "currency_risk_premium": {"type": "number", "description": "Currency risk premium as a decimal.", "default": 0.0},
-    "country_risk_premium": {"type": "number", "description": "Country risk premium as a decimal.", "default": 0.0},
+    "currency_risk_premium": {"type": "number", "description": "Currency risk premium as a decimal (e.g. 0.02 = 2%).", "default": 0.0},
+    "country_risk_premium": {"type": "number", "description": "Country risk premium as a decimal (e.g. 0.03 = 3%).", "default": 0.0},
     # cost approach
     "development_costs": {
         "type": "object",
@@ -182,7 +182,7 @@ PARAMS: dict[str, dict[str, Any]] = {
         "description": "Contributory assets, each {value, return_rate}.",
     },
     # IP
-    "remaining_life": {"type": "integer", "description": "Remaining legal/economic life of the patent in years."},
+    "remaining_life": {"type": "integer", "description": "Remaining legal/economic life of the patent in years (≥ 0)."},
     "probability_of_success": {
         "type": "number",
         "description": "Probability of technical and commercial success, in [0,1].",
@@ -209,10 +209,10 @@ PARAMS: dict[str, dict[str, Any]] = {
         "description": "Projected annual revenue subject to the copyright royalty, in currency units.",
     },
     "development_cost": {"type": "number", "description": "Development or acquisition cost, in currency units."},
-    "economic_life": {"type": "integer", "description": "Economic life in years."},
+    "economic_life": {"type": "integer", "description": "Economic life in years (≥ 1)."},
     "competitive_advantage_period": {
         "type": "integer",
-        "description": "Years the competitive advantage is expected to persist.",
+        "description": "Years the competitive advantage is expected to persist (≥ 0).",
     },
     "secrecy_probability": {
         "type": "number",
@@ -221,9 +221,9 @@ PARAMS: dict[str, dict[str, Any]] = {
     # technology
     "rd_costs": {"type": "number", "description": "Cumulative research and development costs, in currency units."},
     "life_cycle_stage": {"type": "string", "description": 'Life-cycle stage, e.g. "growth", "mature", "decline".'},
-    "competitive_advantage": {"type": "integer", "description": "Years of competitive advantage."},
+    "competitive_advantage": {"type": "integer", "description": "Years of competitive advantage (≥ 0)."},
     "maintenance_cost": {"type": "number", "description": "Annual maintenance cost, in currency units."},
-    "user_base": {"type": "integer", "description": "Number of users."},
+    "user_base": {"type": "integer", "description": "Number of users (integer ≥ 0)."},
     "revenue_model": {
         "type": "object",
         "description": 'Revenue model, e.g. {"subscription_price": 20, "paying_users": 10000}.',
@@ -231,34 +231,34 @@ PARAMS: dict[str, dict[str, Any]] = {
     "acquisition_cost": {"type": "number", "description": "Cost to acquire the data, in currency units."},
     "quality_score": {"type": "number", "description": "Data quality score, in [0,1]."},
     "revenue_contribution": {"type": "number", "description": "Annual revenue contribution, in currency units."},
-    "network_size": {"type": "integer", "description": "Number of network participants."},
+    "network_size": {"type": "integer", "description": "Number of network participants (integer ≥ 0)."},
     "network_effects_coefficient": {
         "type": "number",
-        "description": "Network-effects coefficient scaling revenue with network size.",
+        "description": "Network-effects coefficient scaling revenue with network size (typically 0.5–2.0).",
     },
     "revenue_per_user": {"type": "number", "description": "Revenue per user, in currency units."},
     # customer
-    "customer_count": {"type": "integer", "description": "Number of customers."},
+    "customer_count": {"type": "integer", "description": "Number of customers (integer ≥ 0)."},
     "avg_revenue_per_customer": {
         "type": "number",
         "description": "Average annual revenue per customer, in currency units.",
     },
     "retention_rate": {"type": "number", "description": "Annual customer retention rate, in [0,1]."},
-    "projection_period": {"type": "integer", "description": "Projection horizon in years."},
-    "channel_count": {"type": "integer", "description": "Number of distribution channels."},
+    "projection_period": {"type": "integer", "description": "Projection horizon in years (integer ≥ 1)."},
+    "channel_count": {"type": "integer", "description": "Number of distribution channels (integer ≥ 0)."},
     "revenue_per_channel": {"type": "number", "description": "Annual revenue per channel, in currency units."},
-    "channel_margin": {"type": "number", "description": "Channel profit margin as a decimal."},
+    "channel_margin": {"type": "number", "description": "Channel profit margin as a decimal in [0,1]."},
     "protected_revenue": {
         "type": "number",
         "description": "Annual revenue protected by the non-compete, in currency units.",
     },
-    "term": {"type": "integer", "description": "Non-compete term in years."},
+    "term": {"type": "integer", "description": "Non-compete term in years (≥ 0)."},
     "enforcement_probability": {
         "type": "number",
         "description": "Probability the non-compete is enforceable, in [0,1].",
     },
     # human capital
-    "employee_count": {"type": "integer", "description": "Number of employees."},
+    "employee_count": {"type": "integer", "description": "Number of employees (integer ≥ 0)."},
     "avg_replacement_cost": {
         "type": "number",
         "description": "Average cost to replace one employee, in currency units.",
@@ -301,7 +301,7 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "obsolescence_rate": {
         "type": "number",
-        "description": "Annual obsolescence rate as a decimal.",
+        "description": "Annual obsolescence rate as a decimal in [0,1].",
         "default": 0.05,
     },
     # impairment
@@ -351,8 +351,8 @@ PARAMS: dict[str, dict[str, Any]] = {
         "type": "number",
         "description": "Annual lost profits or reasonable royalty, in currency units.",
     },
-    "infringement_period": {"type": "integer", "description": "Infringement period in years."},
-    "prejudgment_interest_rate": {"type": "number", "description": "Pre-judgment interest rate as a decimal."},
+    "infringement_period": {"type": "integer", "description": "Infringement period in years (≥ 0)."},
+    "prejudgment_interest_rate": {"type": "number", "description": "Pre-judgment interest rate as a decimal (e.g. 0.05 = 5%)."},
     # simulation
     "input_distributions": {
         "type": "array:object",
@@ -366,7 +366,7 @@ PARAMS: dict[str, dict[str, Any]] = {
         "description": "Simulation iterations; monte_carlo_sensitivity requires 1000-100000.",
         "default": 10000,
     },
-    "seed": {"type": "integer", "description": "Random seed for reproducible simulations."},
+    "seed": {"type": "integer", "description": "Random seed (integer ≥ 0) for reproducible simulations."},
     "base_params": {
         "type": "object",
         "description": "Base values for all parameters, including those held fixed.",
