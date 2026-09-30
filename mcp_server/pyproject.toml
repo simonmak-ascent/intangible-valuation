@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "intangible-valuation-mcp"
+version = "2.0.0"
+description = "MCP server for the Intangible Valuation Engine — 14 tools covering 124+ intangible asset valuation formulas."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Intangible Valuation Contributors" }]
+keywords = ["mcp", "model-context-protocol", "mcp-server", "valuation", "intangible-assets", "patent", "brand", "goodwill", "ppa", "finance", "ai-agent"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = [
+    "fastmcp>=2.0.0",
+    "intangible-valuation>=1.0.3",
+]
+
+[project.scripts]
+intangible-valuation-mcp = "server:main"
+
+[project.urls]
+Homepage = "https://github.com/simonplmak-cloud/intangible-valuation"
+Repository = "https://github.com/simonplmak-cloud/intangible-valuation"
+"Bug Tracker" = "https://github.com/simonplmak-cloud/intangible-valuation/issues"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["server.py", "tool_surface.py"]

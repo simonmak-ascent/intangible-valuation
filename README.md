@@ -7,15 +7,39 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonplmak-cloud/intangible-valuation/badge)](https://scorecard.dev/viewer/?uri=github.com/simonplmak-cloud/intangible-valuation)
+[![Glama MCP](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation)
+[![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
 
 ## Overview
 
 A production-grade Python library for intangible asset valuation, implementing every formula from the **[Intangible Asset Valuation](https://www.amazon.com/Intangible-Asset-Valuation-Comprehensive-Technology/dp/B0FZ8742R1)** textbook by Simon Mak, William Yuen, Paul Wu, and Wayne Hu (Valuation in Practice Series, Ascent Partners). Designed for developers, financial analysts, accountants, and AI agents who need auditable, structured valuation computations for ASC 805 / IFRS 3 compliant workflows.
 
 **Three-layer architecture:**
-1. **Python Library** — 22 modules, 124+ typed functions, all returning `ValuationResult` (value + assumptions + sensitivity)
-2. **MCP Server** — 49 tools for AI agents (Claude, OpenCode, etc.) via stdio/SSE
-3. **AI-Agent Skills** — 3 skill definitions with workflow guidance for valuation domains
+
+```mermaid
+graph TB
+    subgraph Library["Python Library"]
+        MOD["22 Modules<br/>124+ Functions"] --> VR["ValuationResult"]
+    end
+    subgraph MCP["MCP Server"]
+        VR --> SVR["FastMCP Server<br/>14 folded tools"]
+    end
+    subgraph Skills["AI-Agent Skills"]
+        SVR --> AV["Asset Valuation"]
+        SVR --> DR["Discount Rates"]
+        SVR --> PPA["Purchase Price Allocation"]
+        SVR --> IMP["Impairment Testing"]
+    end
+    style Library fill:#0083AB,color:#fff
+    style MCP fill:#4CAF50,color:#fff
+    style Skills fill:#9C27B0,color:#fff
+```
+
+1. **Python Library** — 22 modules, 124+ typed functions, all returning `ValuationResult` (value + assumptions + steps + formula reference)
+2. **MCP Server** — 14 folded tools (124+ formulas) for AI agents via stdio and hosted Streamable HTTP
+3. **AI-Agent Skills** — 4 skill definitions with workflow guidance for valuation domains
 
 ## Installation
 
@@ -55,18 +79,53 @@ print(f"Patent value: ${value.value:,.2f}")
 
 ### MCP Server (for AI Agents)
 
+The server exposes **14 tools**, each folding a family of formulas behind a
+`method` argument — time value, discount rates, cost/market/income approaches,
+IP, technology, customer and human-capital assets, goodwill and purchase price
+allocation, impairment, royalty analysis, uncertainty (Monte Carlo / decision
+trees), and transfer-pricing / litigation.
+
+**Local (stdio):**
+
 ```bash
-cd mcp_server && python server.py
+pip install "intangible-valuation[mcp]"
+python mcp_server/server.py
 ```
 
-Connect with any MCP-compatible AI agent. All 49 valuation tools available.
+**Hosted (Streamable HTTP)** — no install, no API key:
+
+```
+https://intangible-valuation.simonmak.com/api/mcp
+```
+
+**OpenCode** — add to `opencode.json`:
+
+```json
+"intangible-valuation": {
+  "type": "remote",
+  "url": "https://intangible-valuation.simonmak.com/api/mcp",
+  "timeout": 60000
+}
+```
+
+**Claude Desktop / Cursor** — add the HTTP URL
+`https://intangible-valuation.simonmak.com/api/mcp` as an MCP server, or run the
+stdio entrypoint above.
+
+**MCP Registry** — published as
+`io.github.simonplmak-cloud/intangible-valuation` (manifest:
+[`server.json`](server.json)) and listed on
+[Glama](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation) and
+the [Official MCP Registry](https://registry.modelcontextprotocol.io). The
+[`glama.json`](glama.json) file holds the Glama maintainer entry.
 
 ### AI-Agent Skills
 
 Copy the `skills/` directory to your agent's skills folder:
+
 - **`asset-valuation`** — Patents, trademarks, technology, customer relationships, human capital
 - **`discount-rate-construction`** — Build-up, CAPM, WACC, risk premiums, adjustments
-- **`purchase-price-allocation`** — ASC 805 / IFRS 3 PPA workflow, goodwill calculation, impairment testing
+- **`purchase-price-allocation`** — ASC 805 / IFRS 3 PPA workflow, goodwill calculation
 - **`impairment-testing`** — ASC 350, IAS 36 goodwill and intangible impairment
 
 ## Valuation Methods by Category
@@ -93,9 +152,9 @@ Copy the `skills/` directory to your agent's skills folder:
 
 ## Why This Library?
 
-- **Auditable** — Every function returns `ValuationResult` with value, method, inputs, assumptions, and step-by-step calculation breakdown
+- **Auditable** — Every function returns `ValuationResult` with value, method, formula reference, assumptions, and step-by-step calculation breakdown
 - **Textbook-accurate** — All 124+ formulas verified against book example values with 1056 unit tests
-- **AI-ready** — MCP server and Skills for seamless AI agent integration
+- **AI-ready** — MCP server (14 folded tools) and Skills for seamless AI agent integration
 - **Complete coverage** — All three valuation approaches (cost, market, income) across 19 chapters
 - **Open source** — MIT license, extensible, well-documented
 
@@ -116,6 +175,9 @@ ruff check .
 
 # Type check
 mypy src/
+
+# Regenerate the MCP stdio server from the canonical surface
+python scripts/generate_mcp.py
 ```
 
 ## Documentation

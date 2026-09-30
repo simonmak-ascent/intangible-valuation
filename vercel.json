@@ -3,6 +3,7 @@
     "api/index.py": { "memory": 512, "maxDuration": 30 },
     "api/mcp.py": { "memory": 512, "maxDuration": 30 }
   },
+  "rewrites": [{ "source": "/api/mcp", "destination": "/api/mcp" }],
   "redirects": [
     { "source": "/docs", "destination": "https://intangible-valuation.simonmak.com", "permanent": false }
   ]

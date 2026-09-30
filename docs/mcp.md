@@ -1,19 +1,21 @@
 # MCP Server
 
-The Intangible Valuation MCP (Model Context Protocol) server exposes all valuation methods as tools for AI agents.
+The Intangible Valuation MCP (Model Context Protocol) server exposes the full
+valuation library to AI agents as **14 tools**, each folding a family of
+formulas behind a `method` argument.
 
 ## Overview
 
-The MCP server provides AI agents with access to:
-
-- Time value of money calculations
-- Discount rate construction (build-up, CAPM, WACC)
-- Relief from Royalty valuations
-- Purchase Price Allocation
-- Monte Carlo simulation
-- Decision tree analysis
-- Goodwill calculation
-- Royalty benchmarking
+- **14 tools** covering 124+ formulas across time value, discount rates, cost /
+  market / income approaches, asset types, goodwill & PPA, impairment, royalty
+  analysis, uncertainty, and transfer-pricing / litigation.
+- **Single source of truth:** `mcp_server/tool_surface.py` defines every tool
+  once; the stdio server (`mcp_server/server.py`) is generated from it and the
+  hosted endpoint (`api/mcp.py`) consumes it at runtime, so the two surfaces
+  cannot drift.
+- **Structured results:** every tool returns `value`, `method`,
+  `formula_reference`, `steps`, and `assumptions`.
+- **Read-only & deterministic:** no files, network, auth, or rate limits.
 
 ## Setup
 
@@ -23,7 +25,7 @@ The MCP server provides AI agents with access to:
 pip install intangible-valuation[mcp]
 ```
 
-### Configuration
+### Configuration (stdio)
 
 Add the MCP server to your AI agent configuration:
 
@@ -31,82 +33,138 @@ Add the MCP server to your AI agent configuration:
 {
   "mcpServers": {
     "intangible-valuation": {
-      "command": "intangible-valuation-mcp",
-      "args": []
+      "command": "python",
+      "args": ["mcp_server/server.py"]
     }
   }
 }
 ```
 
-### Running Standalone
+The installed console script is equivalent:
 
 ```bash
 intangible-valuation-mcp
 ```
 
+### Configuration (hosted)
+
+No install, no API key — point the client at the Streamable HTTP endpoint:
+
+```
+https://intangible-valuation.simonmak.com/api/mcp
+```
+
 ## Available Tools
 
-### Time Value of Money
+Each tool takes a required `method` and that method's parameters. Only `method`
+is required; supply just the parameters named for the selected method.
 
-| Tool | Description |
-|------|-------------|
-| `present_value` | Calculate PV of a single future cash flow |
-| `future_value` | Calculate FV of a present amount |
-| `annuity_pv` | Calculate PV of an ordinary annuity |
-| `perpetuity_pv` | Calculate PV of a perpetuity |
-| `growing_annuity_pv` | Calculate PV of a growing annuity |
-| `terminal_value` | Calculate terminal value (Gordon Growth or Exit Multiple) |
+### `valuation_time_value`
 
-### Discount Rates
+Time value of money: single sums, annuities, perpetuities, and terminal value.
 
-| Tool | Description |
-|------|-------------|
-| `build_up_discount_rate` | Build-up method with risk premiums |
-| `capm_discount_rate` | CAPM cost of equity |
-| `wacc` | Weighted Average Cost of Capital |
-| `dlom_finnerty` | Finnerty model for lack of marketability |
-| `control_premium` | Control premium calculation |
-| `tax_amortization_benefit` | TAB present value |
+| Method | Formula |
+|--------|---------|
+| `present_value` | PV = FV / (1 + r)^n |
+| `future_value` | FV = PV * (1 + r)^n |
+| `annuity_pv` | PV = PMT * [1 - (1 + r)^-n] / r |
+| `perpetuity_pv` | PV = PMT / r |
+| `growing_annuity_pv` | PV of a constant-growth annuity |
+| `terminal_value_gordon_growth` | TV = FCF * (1 + g) / (r - g) |
+| `terminal_value_exit_multiple` | TV = FCF * exit multiple |
 
-### Valuation Methods
+### `valuation_discount_rate`
 
-| Tool | Description |
-|------|-------------|
-| `relief_from_royalty` | Relief from Royalty method with TAB |
-| `reproduction_cost` | Depreciated reproduction cost |
-| `replacement_cost` | Depreciated replacement cost |
-| `purchase_price_allocation` | Full PPA waterfall |
-| `goodwill` | Goodwill as residual |
-| `monte_carlo_valuation` | Monte Carlo simulation |
-| `decision_tree_valuation` | Decision tree analysis |
+Build-up, CAPM, WACC, tax-amortization benefit, control premium, Finnerty DLOM,
+and currency/country adjustment.
+
+### `valuation_cost_approach`
+
+Depreciated reproduction cost and depreciated replacement cost.
+
+### `valuation_market_approach`
+
+Comparable transaction multiples and royalty capitalization.
+
+### `valuation_income_methods`
+
+Relief from royalty, MPEEM, single-period excess earnings, incremental cash
+flow, and contributory asset charges.
+
+### `valuation_ip`
+
+Patent, trademark, copyright, and trade-secret valuation.
+
+### `valuation_technology`
+
+Developed technology, software, data assets, and platforms.
+
+### `valuation_customer`
+
+Customer relationships, distribution networks, and non-compete agreements.
+
+### `valuation_human_capital`
+
+Assembled workforce and key-person value.
+
+### `valuation_goodwill_ppa`
+
+Goodwill as a residual, the full purchase price allocation waterfall, and
+useful-life estimation.
+
+### `valuation_impairment`
+
+Goodwill and intangible impairment under ASC 350 or IAS 36.
+
+### `valuation_royalty_analysis`
+
+Royalty-rate benchmarking, adjustment, and the 25% rule.
+
+### `valuation_simulation`
+
+Monte Carlo valuation, Monte Carlo sensitivity, decision trees, and
+one-at-a-time sensitivity analysis.
+
+### `valuation_compliance`
+
+Comparable Uncontrolled Price (transfer pricing) and patent infringement
+damages.
 
 ## Example Usage
 
-An AI agent can call the tools like this:
-
+```jsonc
+// tools/call
+{
+  "method": "relief_from_royalty",
+  "revenue_projections": [1000000, 1100000, 1200000, 1300000, 1400000],
+  "royalty_rate": 0.05,
+  "discount_rate": 0.12,
+  "tax_rate": 0.25,
+  "useful_life": 5
+}
 ```
-Tool: relief_from_royalty
-Arguments:
-  revenue_projections: [1000000, 1100000, 1200000, 1300000, 1400000]
-  royalty_rate: 0.05
-  discount_rate: 0.12
-  tax_rate: 0.25
-  useful_life: 5
 
 Result:
-  value: 194163.77
-  method: Relief from Royalty
-  tab_factor: 1.22
+
+```json
+{
+  "value": 194163.77,
+  "method": "Relief from Royalty",
+  "formula_reference": "...",
+  "steps": ["..."],
+  "assumptions": ["..."]
+}
 ```
 
 ## Architecture
 
-The MCP server is built with FastMCP and exposes all valuation functions as tools with:
+Every tool is a pure calculator built with FastMCP and shared with the hosted
+endpoint:
 
-- Full parameter validation via Pydantic
-- Rich descriptions for each tool
+- Parameter validation via Pydantic
+- `outputSchema` + MCP `annotations` on every tool
 - Structured JSON responses with calculation steps
-- Error handling with detailed messages
+- Error handling that returns an error instead of a value
 
 ## Development
 
@@ -114,6 +172,9 @@ The MCP server is built with FastMCP and exposes all valuation functions as tool
 # Run the server in development mode
 python -m mcp_server.server
 
-# Test MCP tools
-python -c "from mcp_server import tools; print(tools.list_tools())"
+# Regenerate the stdio server from the canonical surface
+python scripts/generate_mcp.py
+
+# Lint the tool surface (Glama TDQS)
+npx --yes mcp-tdqs@0.2.0 lint --command "python mcp_server/server.py" --fail-on error
 ```
