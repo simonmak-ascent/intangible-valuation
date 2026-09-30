@@ -1263,11 +1263,7 @@ def describe(tool: dict[str, Any]) -> str:
         "Only method is required; every other parameter is method-dependent, so supply just the ones named for "
         "the selected method and leave the rest unset."
     )
-    lines.append(
-        "Deterministic and side-effect-free: identical inputs always return an identical value; no files or "
-        "network resources are created, read, or destroyed; and no authentication, credentials, or rate limits "
-        "apply."
-    )
+    lines.append("Deterministic and side-effect-free: identical inputs always return an identical value.")
     lines.append(
         "Supplying an unknown method, or leaving unset a parameter that the chosen method requires, returns an "
         "error instead of a value."
