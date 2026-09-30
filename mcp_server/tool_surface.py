@@ -679,12 +679,15 @@ TOOLS: list[dict[str, Any]] = [
             "cash flow, and contributory asset charges."
         ),
         "use": (
-            "Use for the primary valuation of identifiable intangibles where cash flows can be projected; MPEE "
-            "for customer-related and technology assets, RFR for IP with observable royalty rates."
+            "Use for the income-approach arithmetic: relief_from_royalty for IP with observable royalty rates, "
+            "and excess earnings (mpeem or single_period_excess_earnings) for the residual intangible. For a "
+            "complete asset-specific valuation of customer, technology, IP or workforce assets, prefer the "
+            "dedicated valuation_customer, valuation_technology, valuation_ip and valuation_human_capital tools."
         ),
         "alt": (
-            "For royalty-rate inputs use valuation_royalty_analysis; for cost or market indications use "
-            "valuation_cost_approach and valuation_market_approach."
+            "For royalty-rate inputs use valuation_royalty_analysis; for asset-specific income valuations use "
+            "valuation_customer, valuation_technology, valuation_ip or valuation_human_capital; for cost or "
+            "market indications use valuation_cost_approach and valuation_market_approach."
         ),
         "methods": [
             _method(
