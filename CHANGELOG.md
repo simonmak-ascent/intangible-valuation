@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-09-30
+
 ### MCP 2.0.0 — Glama-ready tool surface
 - Folded 49 flat MCP tools into **14 method-switched family tools** defined once in
   `mcp_server/tool_surface.py`; the stdio server is generated from it and the hosted
@@ -17,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added registry/reproducibility packaging: `glama.json`, `server.json`, `Dockerfile`,
   `mcp_server/` package; published to the Official MCP Registry as
   `io.github.simonplmak-cloud/intangible-valuation`.
+- **Registry manifests now declare both transports.** `server.json` carries a `packages`
+  entry (PyPI `intangible-valuation`, `uvx` runtime, stdio transport) alongside the hosted
+  `streamable-http` remote, and `glama.json` is a complete Glama manifest with pip/uvx
+  install instructions. One version (`2.0.0`) is the single source of truth across
+  `pyproject.toml`, `server.json`, and the MCP server, guarded by a packaging test.
 - Added TDQS, CodeQL, OpenSSF Scorecard, scheduled pip-audit and MkDocs `--strict`
   workflows, plus a generated-server determinism gate and a production deploy canary.
 - Exposed `/api/*` (hosted MCP + calculator) publicly and attached the canonical

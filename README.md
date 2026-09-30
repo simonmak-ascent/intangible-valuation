@@ -112,12 +112,21 @@ https://intangible-valuation.simonmak.com/api/mcp
 `https://intangible-valuation.simonmak.com/api/mcp` as an MCP server, or run the
 stdio entrypoint above.
 
-**MCP Registry** — published as
-`io.github.simonplmak-cloud/intangible-valuation` (manifest:
-[`server.json`](server.json)) and listed on
+**MCP Registry & Glama** — published as
+`io.github.simonplmak-cloud/intangible-valuation`. The
+[`server.json`](server.json) manifest declares both the hosted
+`streamable-http` remote and a PyPI **stdio** package, and
+[`glama.json`](glama.json) carries the Glama listing. Install and run the stdio
+server from either registry:
+
+```bash
+pip install "intangible-valuation[mcp]" && intangible-valuation-mcp   # pip
+uvx --from intangible-valuation intangible-valuation-mcp              # uvx (no install)
+```
+
+Listed on
 [Glama](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation) and
-the [Official MCP Registry](https://registry.modelcontextprotocol.io). The
-[`glama.json`](glama.json) file holds the Glama maintainer entry.
+the [Official MCP Registry](https://registry.modelcontextprotocol.io).
 
 ### AI-Agent Skills
 

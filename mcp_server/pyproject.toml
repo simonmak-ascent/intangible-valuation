@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "fastmcp>=2.0.0",
-    "intangible-valuation>=1.0.3",
+    "intangible-valuation>=2.0.0",
 ]
 
 [project.scripts]
