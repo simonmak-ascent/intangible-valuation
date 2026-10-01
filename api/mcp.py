@@ -1,4 +1,4 @@
-"""Vercel serverless MCP endpoint for intangible-valuation — 14 folded tools.
+"""Vercel serverless MCP endpoint for intangible-valuation — 14 folded tools, prompts and resources.
 
 The tool surface is defined once in ``mcp_server/tool_surface.py`` and shared
 with the stdio server, so the hosted endpoint and the local server advertise
@@ -8,6 +8,8 @@ annotations). Model Context Protocol (MCP) JSON-RPC 2.0 over POST:
 * ``initialize``   — handshake
 * ``tools/list``   — 14 tool definitions
 * ``tools/call``   — execute a tool by name
+* ``prompts/list`` / ``prompts/get``       — guided valuation workflows
+* ``resources/list`` / ``resources/read`` — the method catalog
 """
 
 import json as _json
@@ -16,6 +18,7 @@ import sys as _sys
 
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 
+from mcp_server import agent_guides  # noqa: E402
 from mcp_server.tool_surface import (  # noqa: E402
     SERVER_NAME,
     SERVER_VERSION,
@@ -82,13 +85,20 @@ def handle_request(http_method: str, _path: str, body_raw: str | None) -> tuple:
             {
                 "protocolVersion": PROTOCOL_VERSION,
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
-                "capabilities": {"tools": {"listChanged": False}},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "prompts": {"listChanged": False},
+                    "resources": {"listChanged": False, "subscribe": False},
+                },
                 "instructions": (
                     "Intangible asset valuation calculators: 14 tools covering time value, discount rates, "
                     "cost, market and income approaches, IP, technology, customer and human-capital assets, "
                     "goodwill and purchase price allocation, impairment, royalty analysis, uncertainty "
                     "(Monte Carlo / decision trees), and transfer-pricing / litigation. Select a formula with "
-                    "the `method` argument."
+                    "the `method` argument. Read the resource "
+                    f"{agent_guides.CATALOG_URI} for every method's required parameters, or use a "
+                    "prompt (purchase_price_allocation, value_ip_asset, impairment_test) for a guided "
+                    "multi-method workflow."
                 ),
             },
         )
@@ -112,6 +122,24 @@ def handle_request(http_method: str, _path: str, body_raw: str | None) -> tuple:
             req_id,
             {"content": [{"type": "text", "text": _json.dumps(result)}], "structuredContent": result},
         )
+
+    if req_method == "prompts/list":
+        return _rpc_result(req_id, {"prompts": agent_guides.list_prompts()})
+    if req_method == "prompts/get":
+        params = body.get("params", {})
+        try:
+            return _rpc_result(req_id, agent_guides.get_prompt(params.get("name", ""), params.get("arguments")))
+        except ValueError as exc:
+            return _rpc_error(req_id, -32602, str(exc))
+    if req_method == "resources/list":
+        return _rpc_result(req_id, {"resources": agent_guides.list_resources()})
+    if req_method == "resources/templates/list":
+        return _rpc_result(req_id, {"resourceTemplates": []})
+    if req_method == "resources/read":
+        try:
+            return _rpc_result(req_id, agent_guides.read_resource(body.get("params", {}).get("uri", "")))
+        except ValueError as exc:
+            return _rpc_error(req_id, -32002, str(exc))
 
     return _rpc_error(req_id, -32601, f"Unknown method: {req_method}")
 

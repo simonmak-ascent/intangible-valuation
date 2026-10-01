@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "intangible-valuation-mcp"
-version = "2.0.1"
+version = "2.1.0"
 description = "MCP server for the Intangible Valuation Engine — 14 tools covering 124+ intangible asset valuation formulas."
 readme = "README.md"
 license = "MIT"
@@ -37,4 +37,4 @@ Repository = "https://github.com/simonplmak-cloud/intangible-valuation"
 "Bug Tracker" = "https://github.com/simonplmak-cloud/intangible-valuation/issues"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["server.py", "tool_surface.py"]
+only-include = ["server.py", "tool_surface.py", "agent_guides.py"]

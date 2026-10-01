@@ -34,6 +34,13 @@ except ImportError:  # installed as a top-level module (pip install intangible-v
 
 mcp = FastMCP(SERVER_NAME, version=SERVER_VERSION)
 
+try:  # run from the repo root
+    from mcp_server import agent_guides
+except ImportError:  # installed as a top-level module
+    import agent_guides  # type: ignore[no-redef,import-not-found]
+
+agent_guides.register(mcp)
+
 @mcp.tool(
     name='valuation_time_value',
     title='Time Value of Money',

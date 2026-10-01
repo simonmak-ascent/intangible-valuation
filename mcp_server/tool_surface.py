@@ -30,7 +30,21 @@ from typing import Any
 # --------------------------------------------------------------------------
 
 SERVER_NAME = "intangible-valuation"
-SERVER_VERSION = "2.0.0"
+
+
+def _package_version() -> str:
+    """Installed distribution version, so serverInfo never drifts from the release."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    for dist in ("intangible-valuation", "intangible-valuation-mcp"):
+        try:
+            return version(dist)
+        except PackageNotFoundError:
+            continue
+    return "2.1.0"  # source checkout without an install (e.g. the hosted function)
+
+
+SERVER_VERSION = _package_version()
 
 #: Behaviour shared by every tool: pure arithmetic, no I/O.
 COMMON_ANNOTATIONS: dict[str, Any] = {
@@ -56,6 +70,11 @@ OUTPUT_SCHEMA: dict[str, Any] = {
             "description": "Modelling assumptions applied (list of strings or key/value object).",
         },
         "error": {"type": "string", "description": "Error message when the call fails."},
+        "defaults_applied": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Optional parameters that were not supplied, so their documented defaults were used.",
+        },
     },
     "required": ["value"],
 }
@@ -1471,10 +1490,16 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get(mcp_name) is None:
             raise ValueError(f"method '{method['key']}' requires parameter '{mcp_name}'")
         kwargs[fn_param] = arguments[mcp_name]
+    defaults_applied: list[str] = []
     for fn_param, mcp_name in method.get("opt", {}).items():
         value = arguments.get(mcp_name)
         if value is not None:
             kwargs[fn_param] = value
+        else:
+            defaults_applied.append(mcp_name)
+    if method.get("opt") and not method.get("args") and not kwargs:
+        # Every input would default, which yields a meaningless value.
+        raise ValueError(f"method '{method['key']}' needs at least one of: " + ", ".join(method["opt"].values()))
     kwargs.update(method.get("inject", {}))
 
     fn = _resolve(method["module"], method["function"])
@@ -1484,5 +1509,7 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     elif method.get("adapter") == "mc_sensitivity":
         kwargs["valuation_fn"] = _sum_valuation
 
-    result = fn(**kwargs)
-    return _unwrap(result)
+    result = _unwrap(fn(**kwargs))
+    if defaults_applied:
+        result = {**result, "defaults_applied": defaults_applied}
+    return result

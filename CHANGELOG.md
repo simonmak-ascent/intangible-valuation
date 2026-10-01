@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-01
+
+### Added
+
+- **MCP prompts**: `purchase_price_allocation`, `value_ip_asset` and
+  `impairment_test`, guided multi-method workflows whose tool/method steps and
+  parameter lists are generated from the canonical tool surface.
+- **MCP resources**: `intangible-valuation://methods` (full method catalog with
+  required and optional parameters) plus one resource per tool, served by both the
+  stdio server and the hosted endpoint (`prompts/*`, `resources/*`).
+- Tool results now include `defaults_applied`, listing optional inputs that fell
+  back to their defaults.
+
+### Fixed
+
+- Version drift: `pyproject.toml`, `mcp_server/pyproject.toml` and `server.json`
+  are aligned again (the manifest said 2.0.2, the packages 2.0.1), and
+  `serverInfo.version` is read from the installed package instead of a hard-coded
+  2.0.0.
+
 ### Fixed
 - **MCP Registry publish no longer races PyPI.** `publish-registry.yml` waits for the
   package version declared in `server.json` to be served by PyPI and to carry the

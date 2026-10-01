@@ -1,0 +1,89 @@
+"""Prompts, resources and input-default reporting on the MCP surface."""
+
+from __future__ import annotations
+
+import json
+import re
+import tomllib
+from pathlib import Path
+
+import pytest
+
+from mcp_server import agent_guides as g
+from mcp_server import tool_surface as ts
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_catalog_lists_every_tool_and_method() -> None:
+    catalog = json.loads(g.read_resource(g.CATALOG_URI)["contents"][0]["text"])
+    assert [t["tool"] for t in catalog["tools"]] == [t["name"] for t in ts.TOOLS]
+    for entry, tool in zip(catalog["tools"], ts.TOOLS, strict=True):
+        assert [m["method"] for m in entry["methods"]] == [m["key"] for m in tool["methods"]]
+
+
+def test_every_listed_resource_is_readable() -> None:
+    for res in g.list_resources():
+        content = g.read_resource(res["uri"])["contents"][0]
+        assert content["mimeType"] == "application/json"
+        json.loads(content["text"])
+    with pytest.raises(ValueError):
+        g.read_resource("intangible-valuation://methods/nope")
+
+
+@pytest.mark.parametrize("prompt", g.list_prompts(), ids=lambda p: p["name"])
+def test_prompts_render_and_reference_real_methods(prompt: dict) -> None:
+    args = {a["name"]: "example" for a in prompt["arguments"]}
+    text = g.get_prompt(prompt["name"], args)["messages"][0]["content"]["text"]
+    pairs = re.findall(r"call `(\w+)` with method=`(\w+)`", text)
+    assert pairs, "prompt names no tool calls"
+    for tool_name, method_key in pairs:
+        tool = next(t for t in ts.TOOLS if t["name"] == tool_name)
+        assert method_key in {m["key"] for m in tool["methods"]}
+
+
+def test_prompt_requires_its_required_arguments() -> None:
+    with pytest.raises(ValueError):
+        g.get_prompt("purchase_price_allocation", {})
+
+
+def test_defaults_applied_is_reported() -> None:
+    result = ts.call_tool("valuation_cost_approach", {"method": "replacement_cost", "current_cost": 1_000_000})
+    assert result["defaults_applied"] == ["obsolescence_factors"]
+
+
+def test_full_inputs_report_no_defaults() -> None:
+    result = ts.call_tool(
+        "valuation_goodwill_ppa",
+        {"method": "goodwill", "purchase_price": 100.0, "fair_value_net_identifiable_assets": 80.0},
+    )
+    assert "defaults_applied" not in result
+
+
+def test_server_version_matches_pyproject() -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
+    assert project == ts.SERVER_VERSION
+    fallback = re.search(r'return "([\d.]+)"', (ROOT / "mcp_server/tool_surface.py").read_text())
+    assert fallback
+    assert fallback.group(1) == project
+
+
+def test_hosted_endpoint_serves_prompts_and_resources() -> None:
+    import sys
+
+    sys.path.insert(0, str(ROOT))
+    from api.mcp import handle_request
+
+    def rpc(method: str, params: dict | None = None) -> dict:
+        _, _, body = handle_request(
+            "POST", "/api", json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}})
+        )
+        return json.loads(body)
+
+    caps = rpc("initialize")["result"]["capabilities"]
+    assert {"tools", "prompts", "resources"} <= set(caps)
+    assert len(rpc("prompts/list")["result"]["prompts"]) == len(g.PROMPTS)
+    got = rpc("prompts/get", {"name": "impairment_test", "arguments": {"asset": "Retail CGU"}})
+    assert got["result"]["messages"][0]["role"] == "user"
+    assert rpc("resources/read", {"uri": g.CATALOG_URI})["result"]["contents"]
+    assert rpc("resources/read", {"uri": "x://y"})["error"]["code"] == -32002

@@ -130,6 +130,12 @@ Listed on
 [Glama](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation) and
 the [Official MCP Registry](https://registry.modelcontextprotocol.io).
 
+
+**Prompts and resources.** Besides the 14 tools, the server offers three guided
+prompts (`purchase_price_allocation`, `value_ip_asset`, `impairment_test`) and a
+machine-readable method catalog at `intangible-valuation://methods`, so agents can
+see every method's required parameters before calling a tool.
+
 ### AI-Agent Skills
 
 Copy the `skills/` directory to your agent's skills folder:
