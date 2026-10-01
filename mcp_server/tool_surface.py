@@ -89,8 +89,16 @@ PARAMS: dict[str, dict[str, Any]] = {
     # discount rates
     "risk_free_rate": {"type": "number", "description": "Risk-free rate as a decimal (0.04 = 4%)."},
     "equity_risk_premium": {"type": "number", "description": "Equity risk premium as a decimal (0.06 = 6%)."},
-    "size_premium": {"type": "number", "description": "Small-size premium as a decimal (e.g. 0.03 = 3%).", "default": 0.0},
-    "industry_risk_premium": {"type": "number", "description": "Industry risk premium as a decimal (e.g. 0.02 = 2%).", "default": 0.0},
+    "size_premium": {
+        "type": "number",
+        "description": "Small-size premium as a decimal (e.g. 0.03 = 3%).",
+        "default": 0.0,
+    },
+    "industry_risk_premium": {
+        "type": "number",
+        "description": "Industry risk premium as a decimal (e.g. 0.02 = 2%).",
+        "default": 0.0,
+    },
     "specific_risk_premium": {
         "type": "number",
         "description": "Company-specific risk premium as a decimal (e.g. 0.03 = 3%).",
@@ -122,8 +130,16 @@ PARAMS: dict[str, dict[str, Any]] = {
         "type": "number",
         "description": "Base discount rate before currency/country adjustment, as a decimal (e.g. 0.12 = 12%).",
     },
-    "currency_risk_premium": {"type": "number", "description": "Currency risk premium as a decimal (e.g. 0.02 = 2%).", "default": 0.0},
-    "country_risk_premium": {"type": "number", "description": "Country risk premium as a decimal (e.g. 0.03 = 3%).", "default": 0.0},
+    "currency_risk_premium": {
+        "type": "number",
+        "description": "Currency risk premium as a decimal (e.g. 0.02 = 2%).",
+        "default": 0.0,
+    },
+    "country_risk_premium": {
+        "type": "number",
+        "description": "Country risk premium as a decimal (e.g. 0.03 = 3%).",
+        "default": 0.0,
+    },
     # cost approach
     "development_costs": {
         "type": "object",
@@ -352,7 +368,10 @@ PARAMS: dict[str, dict[str, Any]] = {
         "description": "Annual lost profits or reasonable royalty, in currency units.",
     },
     "infringement_period": {"type": "integer", "description": "Infringement period in years (≥ 0)."},
-    "prejudgment_interest_rate": {"type": "number", "description": "Pre-judgment interest rate as a decimal (e.g. 0.05 = 5%)."},
+    "prejudgment_interest_rate": {
+        "type": "number",
+        "description": "Pre-judgment interest rate as a decimal (e.g. 0.05 = 5%).",
+    },
     # simulation
     "input_distributions": {
         "type": "array:object",
