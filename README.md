@@ -218,6 +218,14 @@ By Simon Mak, William Yuen, Paul Wu, Wayne Hu · 176 pages · 19 chapters · 3 a
 
 Based on formulas from the **Intangible Asset Valuation** textbook.
 
+## Use with Context7
+
+Up-to-date Intangible Asset Valuation Engine documentation is indexed on [Context7](https://context7.com/simonplmak-cloud/intangible-valuation), so coding agents can pull it into context on demand. With the Context7 MCP server or `ctx7` CLI installed, name the library in your prompt:
+
+```text
+use library /simonplmak-cloud/intangible-valuation for API and docs
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.

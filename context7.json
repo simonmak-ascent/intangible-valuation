@@ -1,0 +1,45 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Intangible Asset Valuation Engine",
+  "description": "Python library and MCP server implementing 124+ intangible asset valuation formulas (relief from royalty, MPEEM, cost/market/income approaches, purchase price allocation, goodwill impairment, IP, technology, customer and workforce assets, Monte Carlo) as 14 read-only MCP tools for ASC 805 / IFRS 3 / IFRS 13 workflows.",
+  "folders": [
+    "docs",
+    "skills",
+    "mcp_server"
+  ],
+  "rules": [
+    "Install with `pip install 'intangible-valuation[mcp]'`; run the stdio server with `intangible-valuation-mcp` or `uvx --from intangible-valuation intangible-valuation-mcp`.",
+    "The hosted Streamable HTTP endpoint is https://intangible-valuation.simonmak.com/api/mcp.",
+    "All 14 MCP tools (`valuation_*`) are deterministic, read-only calculators; they never fetch market data, so supply every input explicitly.",
+    "Prefer the dedicated asset tools (`valuation_ip`, `valuation_technology`, `valuation_customer`) over the generic `valuation_income_methods` when the asset class is known.",
+    "Use `valuation_goodwill_ppa` for purchase price allocation and `valuation_impairment` for goodwill/intangible impairment testing."
+  ],
+  "excludeFolders": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    ".cache",
+    "tests",
+    "tests-webapp",
+    "e2e",
+    "test-results",
+    "**/__pycache__",
+    ".github",
+    ".opencode",
+    ".devcontainer",
+    "specs",
+    "marketing",
+    "overrides"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "LICENSE",
+    "LICENSE.md",
+    "LICENSE-CONTENT.md",
+    "SECURITY.md",
+    "GITHUB_SETUP.md",
+    "VERCEL_PROTECTION_FIX.md"
+  ]
+}
