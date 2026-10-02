@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->
 
-> Complete intangible asset valuation library implementing **124+ functions** from the *Intangible Asset Valuation* textbook. Python library + MCP server + AI-agent skills.
+> **A complete intangible asset valuation library** implementing 124+ functions from the *Intangible Asset Valuation* textbook — Python library, MCP server, and AI-agent skills.
 
 [![CI](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
