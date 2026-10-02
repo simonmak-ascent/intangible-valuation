@@ -1,18 +1,18 @@
 # Intangible Asset Valuation Engine
 
-> Complete intangible asset valuation library implementing **124+ functions** from the Intangible Asset Valuation textbook. Python library + MCP server + AI-Agent Skills.
+<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->
 
-[![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
+> Complete intangible asset valuation library implementing **124+ functions** from the *Intangible Asset Valuation* textbook. Python library + MCP server + AI-agent skills.
+
 [![CI](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
+[![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonplmak-cloud/intangible-valuation/badge)](https://scorecard.dev/viewer/?uri=github.com/simonplmak-cloud/intangible-valuation)
 [![Glama MCP](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation)
-[![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
-
-<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->
 
 ## Overview
 
@@ -234,4 +234,8 @@ use library /simonplmak-cloud/intangible-valuation for API and docs
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
+
+---
+
+If this saves you time, a ⭐ on GitHub helps others find it.
