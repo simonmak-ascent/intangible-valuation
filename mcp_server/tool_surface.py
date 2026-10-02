@@ -41,7 +41,7 @@ def _package_version() -> str:
             return version(dist)
         except PackageNotFoundError:
             continue
-    return "2.1.0"  # source checkout without an install (e.g. the hosted function)
+    return "2.1.1"  # source checkout without an install (e.g. the hosted function)
 
 
 SERVER_VERSION = _package_version()
