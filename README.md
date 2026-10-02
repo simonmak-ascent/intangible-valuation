@@ -28,7 +28,7 @@ graph TB
     subgraph MCP["MCP Server"]
         VR --> SVR["FastMCP Server<br/>14 folded tools"]
     end
-    subgraph Skills["AI-Agent Skills"]
+    subgraph Skills["AI-agent skills"]
         SVR --> AV["Asset Valuation"]
         SVR --> DR["Discount Rates"]
         SVR --> PPA["Purchase Price Allocation"]
@@ -41,7 +41,7 @@ graph TB
 
 1. **Python Library** — 22 modules, 124+ typed functions, all returning `ValuationResult` (value + assumptions + steps + formula reference)
 2. **MCP Server** — 14 folded tools (124+ formulas) for AI agents via stdio and hosted Streamable HTTP
-3. **AI-Agent Skills** — 4 skill definitions with workflow guidance for valuation domains
+3. **AI-agent skills** — 4 skill definitions with workflow guidance for valuation domains
 
 ## Installation
 
@@ -136,7 +136,7 @@ prompts (`purchase_price_allocation`, `value_ip_asset`, `impairment_test`) and a
 machine-readable method catalog at `intangible-valuation://methods`, so agents can
 see every method's required parameters before calling a tool.
 
-### AI-Agent Skills
+### AI-agent skills
 
 Copy the `skills/` directory to your agent's skills folder:
 
