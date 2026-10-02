@@ -3,7 +3,7 @@
   "name": "io.github.simonmak-ascent/intangible-valuation",
   "title": "Intangible Asset Valuation MCP Server",
   "description": "Intangible asset valuation: 14 tools, 124+ formulas for IP, technology, goodwill, PPA, impairment.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "websiteUrl": "https://intangible-valuation.simonmak.com",
   "repository": {
     "url": "https://github.com/simonmak-ascent/intangible-valuation",
@@ -19,7 +19,7 @@
     {
       "registryType": "pypi",
       "identifier": "intangible-valuation",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {
