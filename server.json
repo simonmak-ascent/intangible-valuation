@@ -1,12 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.simonplmak-cloud/intangible-valuation",
+  "name": "io.github.simonmak-ascent/intangible-valuation",
   "title": "Intangible Asset Valuation MCP Server",
   "description": "Intangible asset valuation: 14 tools, 124+ formulas for IP, technology, goodwill, PPA, impairment.",
   "version": "2.1.0",
   "websiteUrl": "https://intangible-valuation.simonmak.com",
   "repository": {
-    "url": "https://github.com/simonplmak-cloud/intangible-valuation",
+    "url": "https://github.com/simonmak-ascent/intangible-valuation",
     "source": "github"
   },
   "remotes": [
@@ -41,7 +41,7 @@
   ],
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/simonplmak-cloud/intangible-valuation/main/public/favicon.svg",
+      "src": "https://raw.githubusercontent.com/simonmak-ascent/intangible-valuation/main/public/favicon.svg",
       "mimeType": "image/svg+xml",
       "sizes": [
         "any"

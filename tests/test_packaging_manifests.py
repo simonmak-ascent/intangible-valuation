@@ -60,8 +60,8 @@ def validate_server_manifest(manifest: dict[str, Any]) -> list[str]:
     """
     problems: list[str] = []
 
-    if manifest.get("name") != f"io.github.simonplmak-cloud/{PACKAGE_NAME}":
-        problems.append("name must be io.github.simonplmak-cloud/intangible-valuation")
+    if manifest.get("name") != f"io.github.simonmak-ascent/{PACKAGE_NAME}":
+        problems.append("name must be io.github.simonmak-ascent/intangible-valuation")
 
     description = manifest.get("description", "")
     if not description or len(description) > 100:

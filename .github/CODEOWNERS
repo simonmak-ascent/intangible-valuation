@@ -1,22 +1,22 @@
 # Code Owners
 # These owners will be requested for review when someone opens a PR.
 
-* @simonplmak-cloud
+* @simonmak-ascent
 
 # Core math and valuation logic
-src/core/ @simonplmak-cloud
-src/approaches/ @simonplmak-cloud
-src/income_methods/ @simonplmak-cloud
-src/asset_types/ @simonplmak-cloud
-src/advanced/ @simonplmak-cloud
-src/utils/ @simonplmak-cloud
+src/core/ @simonmak-ascent
+src/approaches/ @simonmak-ascent
+src/income_methods/ @simonmak-ascent
+src/asset_types/ @simonmak-ascent
+src/advanced/ @simonmak-ascent
+src/utils/ @simonmak-ascent
 
 # MCP server
-mcp_server/ @simonplmak-cloud
+mcp_server/ @simonmak-ascent
 
 # Documentation
-docs/ @simonplmak-cloud
+docs/ @simonmak-ascent
 
 # CI/CD and configuration
-.github/workflows/ @simonplmak-cloud
-pyproject.toml @simonplmak-cloud
+.github/workflows/ @simonmak-ascent
+pyproject.toml @simonmak-ascent

@@ -4,8 +4,8 @@ site_description: >-
   PPA, impairment testing. 124+ functions aligned to ASC 805, IFRS 3, ASC 350.
 site_author: Ascent Partners
 site_url: https://intangible-valuation.simonmak.com
-repo_url: https://github.com/simonplmak-cloud/intangible-valuation
-repo_name: simonplmak-cloud/intangible-valuation
+repo_url: https://github.com/simonmak-ascent/intangible-valuation
+repo_name: simonmak-ascent/intangible-valuation
 edit_uri: edit/main/docs/
 
 theme:
@@ -53,7 +53,7 @@ extra:
       link: https://www.linkedin.com/company/ascent-partners-group-
       name: Ascent Partners on LinkedIn
     - icon: fontawesome/brands/github
-      link: https://github.com/simonplmak-cloud/intangible-valuation
+      link: https://github.com/simonmak-ascent/intangible-valuation
       name: GitHub Repository
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/intangible-valuation/

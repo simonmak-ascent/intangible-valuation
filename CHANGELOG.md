@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Added the MCP Registry ownership marker
-  (`<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->`) to the package
+  (`<!-- mcp-name: io.github.simonmak-ascent/intangible-valuation -->`) to the package
   README so the PyPI stdio package passes ownership validation and publishes to the
   Official MCP Registry.
 
@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaviour, per-method parameter mapping). `mcp-tdqs` lint: 0 errors, 100% param coverage.
 - Added registry/reproducibility packaging: `glama.json`, `server.json`, `Dockerfile`,
   `mcp_server/` package; published to the Official MCP Registry as
-  `io.github.simonplmak-cloud/intangible-valuation`.
+  `io.github.simonmak-ascent/intangible-valuation`.
 - **Registry manifests now declare both transports.** `server.json` carries a `packages`
   entry (PyPI `intangible-valuation`, `uvx` runtime, stdio transport) alongside the hosted
   `streamable-http` remote, and `glama.json` is a complete Glama manifest with pip/uvx

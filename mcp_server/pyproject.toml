@@ -32,9 +32,9 @@ dependencies = [
 intangible-valuation-mcp = "server:main"
 
 [project.urls]
-Homepage = "https://github.com/simonplmak-cloud/intangible-valuation"
-Repository = "https://github.com/simonplmak-cloud/intangible-valuation"
-"Bug Tracker" = "https://github.com/simonplmak-cloud/intangible-valuation/issues"
+Homepage = "https://github.com/simonmak-ascent/intangible-valuation"
+Repository = "https://github.com/simonmak-ascent/intangible-valuation"
+"Bug Tracker" = "https://github.com/simonmak-ascent/intangible-valuation/issues"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["server.py", "tool_surface.py", "agent_guides.py"]

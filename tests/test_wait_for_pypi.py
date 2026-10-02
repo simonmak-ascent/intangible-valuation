@@ -19,7 +19,7 @@ assert _spec.loader is not None
 wait_for_pypi = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(wait_for_pypi)
 
-SERVER_NAME = "io.github.simonplmak-cloud/intangible-valuation"
+SERVER_NAME = "io.github.simonmak-ascent/intangible-valuation"
 
 
 def _meta(version: str, marker: str | None) -> dict:

@@ -1,18 +1,18 @@
 # Intangible Asset Valuation Engine
 
-<!-- mcp-name: io.github.simonplmak-cloud/intangible-valuation -->
+<!-- mcp-name: io.github.simonmak-ascent/intangible-valuation -->
 
 > **A complete intangible asset valuation library** implementing 124+ functions from the *Intangible Asset Valuation* textbook — Python library, MCP server, and AI-agent skills.
 
-[![CI](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
+[![CI](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonplmak-cloud/intangible-valuation/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
 [![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonplmak-cloud/intangible-valuation/badge)](https://scorecard.dev/viewer/?uri=github.com/simonplmak-cloud/intangible-valuation)
-[![Glama MCP](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonmak-ascent/intangible-valuation/badge)](https://scorecard.dev/viewer/?uri=github.com/simonmak-ascent/intangible-valuation)
+[![Glama MCP](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation)
 
 ## Overview
 
@@ -115,7 +115,7 @@ https://intangible-valuation.simonmak.com/api/mcp
 stdio entrypoint above.
 
 **MCP Registry & Glama** — published as
-`io.github.simonplmak-cloud/intangible-valuation`. The
+`io.github.simonmak-ascent/intangible-valuation`. The
 [`server.json`](server.json) manifest declares both the hosted
 `streamable-http` remote and a PyPI **stdio** package, and
 [`glama.json`](glama.json) carries the Glama listing. Install and run the stdio
@@ -127,7 +127,7 @@ uvx --from intangible-valuation intangible-valuation-mcp              # uvx (no 
 ```
 
 Listed on
-[Glama](https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation) and
+[Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation) and
 the [Official MCP Registry](https://registry.modelcontextprotocol.io).
 
 
@@ -217,7 +217,7 @@ By Simon Mak, William Yuen, Paul Wu, Wayne Hu · 176 pages · 19 chapters · 3 a
   author = {Mak, Simon and Yuen, William and Wu, Paul and Hu, Wayne},
   title = {Intangible Asset Valuation Engine},
   year = {2026},
-  url = {https://github.com/simonplmak-cloud/intangible-valuation},
+  url = {https://github.com/simonmak-ascent/intangible-valuation},
   license = {MIT},
 }
 ```
@@ -226,10 +226,10 @@ Based on formulas from the **Intangible Asset Valuation** textbook.
 
 ## Use with Context7
 
-Up-to-date Intangible Asset Valuation Engine documentation is indexed on [Context7](https://context7.com/simonplmak-cloud/intangible-valuation), so coding agents can pull it into context on demand. With the Context7 MCP server or `ctx7` CLI installed, name the library in your prompt:
+Up-to-date Intangible Asset Valuation Engine documentation is indexed on [Context7](https://context7.com/simonmak-ascent/intangible-valuation), so coding agents can pull it into context on demand. With the Context7 MCP server or `ctx7` CLI installed, name the library in your prompt:
 
 ```text
-use library /simonplmak-cloud/intangible-valuation for API and docs
+use library /simonmak-ascent/intangible-valuation for API and docs
 ```
 
 ## License

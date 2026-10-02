@@ -6,9 +6,9 @@
 
 - Hosted MCP endpoint (Streamable HTTP): https://intangible-valuation.simonmak.com/api/mcp
 - Local stdio server: `uvx --from intangible-valuation intangible-valuation-mcp` or `pip install 'intangible-valuation[mcp]' && intangible-valuation-mcp`
-- Official MCP Registry name: `io.github.simonplmak-cloud/intangible-valuation`
-- Glama listing: https://glama.ai/mcp/servers/simonplmak-cloud/intangible-valuation
-- Context7 library ID: `/simonplmak-cloud/intangible-valuation`
+- Official MCP Registry name: `io.github.simonmak-ascent/intangible-valuation`
+- Glama listing: https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation
+- Context7 library ID: `/simonmak-ascent/intangible-valuation`
 
 ## MCP tools
 
@@ -32,5 +32,5 @@ All tools are deterministic calculators: read-only, no external data. Supply eve
 - [Documentation](https://intangible-valuation.simonmak.com/docs): library reference
 - [MCP guide](https://intangible-valuation.simonmak.com/mcp): client configuration
 - [Agent skills](https://intangible-valuation.simonmak.com/skills)
-- [Source code](https://github.com/simonplmak-cloud/intangible-valuation)
+- [Source code](https://github.com/simonmak-ascent/intangible-valuation)
 - [PyPI package](https://pypi.org/project/intangible-valuation/)

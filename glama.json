@@ -1,9 +1,9 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
-  "maintainers": ["simonplmak-cloud"],
+  "maintainers": ["simonmak-ascent"],
   "name": "intangible-valuation",
   "description": "Auditable intangible asset valuation for AI agents — 14 tools covering 124+ formulas for IP, technology, brands, customer relationships, goodwill, purchase price allocation, impairment, and royalty analysis. Read-only, deterministic calculators.",
-  "repository": "https://github.com/simonplmak-cloud/intangible-valuation",
+  "repository": "https://github.com/simonmak-ascent/intangible-valuation",
   "license": "MIT",
   "runtime": "python",
   "installInstructions": {

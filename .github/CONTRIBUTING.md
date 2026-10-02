@@ -10,7 +10,7 @@ This project follows the [Python Code of Conduct](https://www.python.org/psf/con
 
 ### Reporting Bugs
 
-1. Check the [issue tracker](https://github.com/simonplmak-cloud/intangible-valuation/issues) for existing reports
+1. Check the [issue tracker](https://github.com/simonmak-ascent/intangible-valuation/issues) for existing reports
 2. Use the bug report template when creating a new issue
 3. Include: Python version, OS, library version, and a minimal reproducible example
 

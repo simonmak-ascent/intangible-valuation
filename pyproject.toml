@@ -86,11 +86,11 @@ docs = [
 intangible-valuation-mcp = "mcp_server.server:main"
 
 [project.urls]
-Homepage = "https://github.com/simonplmak-cloud/intangible-valuation"
+Homepage = "https://github.com/simonmak-ascent/intangible-valuation"
 Documentation = "https://intangible-valuation.simonmak.com"
-Repository = "https://github.com/simonplmak-cloud/intangible-valuation"
-Changelog = "https://github.com/simonplmak-cloud/intangible-valuation/releases"
-"Bug Tracker" = "https://github.com/simonplmak-cloud/intangible-valuation/issues"
+Repository = "https://github.com/simonmak-ascent/intangible-valuation"
+Changelog = "https://github.com/simonmak-ascent/intangible-valuation/releases"
+"Bug Tracker" = "https://github.com/simonmak-ascent/intangible-valuation/issues"
 
 [build-system]
 requires = ["hatchling"]

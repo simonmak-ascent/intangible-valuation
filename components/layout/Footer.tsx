@@ -40,9 +40,9 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-sm text-neutral-900 dark:text-white mb-3">Community</h4>
             <ul className="space-y-2">
-              <li><a href="https://github.com/simonplmak-cloud/intangible-valuation" className="text-sm text-neutral-500 hover:text-primary-500">GitHub</a></li>
+              <li><a href="https://github.com/simonmak-ascent/intangible-valuation" className="text-sm text-neutral-500 hover:text-primary-500">GitHub</a></li>
               <li><a href="https://pypi.org/project/intangible-valuation/" className="text-sm text-neutral-500 hover:text-primary-500">PyPI</a></li>
-              <li><a href="https://github.com/simonplmak-cloud/intangible-valuation/issues" className="text-sm text-neutral-500 hover:text-primary-500">Issues</a></li>
+              <li><a href="https://github.com/simonmak-ascent/intangible-valuation/issues" className="text-sm text-neutral-500 hover:text-primary-500">Issues</a></li>
             </ul>
           </div>
         </div>

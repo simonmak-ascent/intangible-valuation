@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/simonplmak-cloud/intangible-valuation.git
+git clone https://github.com/simonmak-ascent/intangible-valuation.git
 cd intangible-valuation
 pip install -e ".[dev]"
 ```
