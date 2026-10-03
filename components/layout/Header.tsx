@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { LogIn, LogOut, User } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -38,6 +39,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {status === "loading" ? (
             <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
           ) : isAuthenticated ? (

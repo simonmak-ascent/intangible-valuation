@@ -1,17 +1,21 @@
 @import "tailwindcss";
 
+/* Dark mode is class-based (darkMode: "class"); `.dark` is set on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Primary scale aligned with www.simonmak.com — brand teal oklch(0.42 0.10 195). */
 @theme {
-  --color-primary-50: #E6F4F7;
-  --color-primary-100: #CCE9EF;
-  --color-primary-200: #99D3DF;
-  --color-primary-300: #66BDCF;
-  --color-primary-400: #33A7BF;
-  --color-primary-500: #0083AB;
-  --color-primary-600: #006E8F;
-  --color-primary-700: #005973;
-  --color-primary-800: #004457;
-  --color-primary-900: #002F3B;
-  --color-primary-950: #001A21;
+  --color-primary-50: oklch(0.97 0.01 195);
+  --color-primary-100: oklch(0.94 0.02 195);
+  --color-primary-200: oklch(0.88 0.03 195);
+  --color-primary-300: oklch(0.78 0.05 195);
+  --color-primary-400: oklch(0.62 0.08 195);
+  --color-primary-500: oklch(0.52 0.1 195);
+  --color-primary-600: oklch(0.42 0.1 195);
+  --color-primary-700: oklch(0.32 0.1 195);
+  --color-primary-800: oklch(0.26 0.08 195);
+  --color-primary-900: oklch(0.2 0.06 195);
+  --color-primary-950: oklch(0.15 0.04 195);
 
   --color-accent-500: #F5A623;
   --color-accent-600: #D4891A;
@@ -82,7 +86,7 @@
   border: 1px solid var(--color-neutral-200);
   border-radius: 1rem;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-  @media (prefers-color-scheme: dark) {
+  @variant dark {
     background-color: var(--color-neutral-900);
     border-color: var(--color-neutral-800);
   }
@@ -93,7 +97,7 @@
   border: 1px solid var(--color-neutral-200);
   border-radius: 1rem;
   box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
-  @media (prefers-color-scheme: dark) {
+  @variant dark {
     background-color: var(--color-neutral-900);
     border-color: var(--color-neutral-800);
   }
