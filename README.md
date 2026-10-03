@@ -7,6 +7,8 @@
 [![CI](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.simonmak--ascent%2Fintangible--valuation-4CAF50)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.simonmak-ascent/intangible-valuation)
+[![Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
