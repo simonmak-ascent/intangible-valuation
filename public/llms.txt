@@ -1,36 +1,12 @@
 # Intangible Asset Valuation Engine
 
-> Open-source (MIT) Python library and MCP server implementing 124+ formulas from the Intangible Asset Valuation textbook by Simon Mak, William Yuen, Paul Wu and Wayne Hu (Valuation in Practice Series, Ascent Partners). 14 read-only, deterministic MCP tools support auditable ASC 805 / IFRS 3 / IFRS 13 work: relief from royalty, MPEEM, cost, market and income approaches, purchase price allocation, goodwill impairment, IP, technology, customer and workforce assets, royalty-rate analysis, Monte Carlo and decision trees.
+> A complete intangible asset valuation library implementing 124+ functions from the *Intangible Asset Valuation* textbook — Python library, MCP server, and AI-agent skills.
 
-## Connect
+Live site: https://intangible-valuation.simonmak.com
+Remote MCP: https://intangible-valuation.simonmak.com/api/mcp
+Package: https://pypi.org/project/intangible-valuation/
+MCP Registry: io.github.simonmak-ascent/intangible-valuation
+Repository: https://github.com/simonmak-ascent/intangible-valuation
 
-- Hosted MCP endpoint (Streamable HTTP): https://intangible-valuation.simonmak.com/api/mcp
-- Local stdio server: `uvx --from intangible-valuation intangible-valuation-mcp` or `pip install 'intangible-valuation[mcp]' && intangible-valuation-mcp`
-- Official MCP Registry name: `io.github.simonmak-ascent/intangible-valuation`
-- Glama listing: https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation
-- Context7 library ID: `/simonmak-ascent/intangible-valuation`
-
-## MCP tools
-
-All tools are deterministic calculators: read-only, no external data. Supply every input explicitly.
-
-- `valuation_time_value`: discounting and compounding, annuities and perpetuities, terminal value (Gordon growth or exit multiple)
-- `valuation_discount_rate`: build-up, CAPM, WACC, tax-amortization benefit, control premium, Finnerty DLOM, country-risk adjustment
-- `valuation_cost_approach`: depreciated reproduction and replacement cost, net of obsolescence
-- `valuation_market_approach`: comparable transaction multiples and royalty capitalization
-- `valuation_income_methods`: relief from royalty, multi- and single-period excess earnings (MPEEM), incremental cash flow, contributory asset charges
-- `valuation_ip`, `valuation_technology`, `valuation_customer`, `valuation_human_capital`: asset-class-specific methods
-- `valuation_goodwill_ppa`: purchase price allocation and goodwill
-- `valuation_impairment`: goodwill and intangible impairment testing
-- `valuation_royalty_analysis`: royalty-rate benchmarks by IP type and industry, deal-factor adjustments, 25% rule
-- `valuation_simulation`: Monte Carlo valuation and sensitivity ranking, decision trees, one-at-a-time sensitivity
-- `valuation_compliance`: CUP arm's-length range for transfer pricing, patent infringement damages
-
-## Docs
-
-- [Website](https://intangible-valuation.simonmak.com/): calculators and AI advisor
-- [Documentation](https://intangible-valuation.simonmak.com/docs): library reference
-- [MCP guide](https://intangible-valuation.simonmak.com/mcp): client configuration
-- [Agent skills](https://intangible-valuation.simonmak.com/skills)
-- [Source code](https://github.com/simonmak-ascent/intangible-valuation)
-- [PyPI package](https://pypi.org/project/intangible-valuation/)
+## Author
+Simon Mak — https://simonmak.com
