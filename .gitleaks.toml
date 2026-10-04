@@ -1,0 +1,5 @@
+# Extends the default gitleaks ruleset. See https://github.com/gitleaks/gitleaks
+title = "intangible-valuation gitleaks config"
+
+[extend]
+useDefault = true

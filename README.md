@@ -52,7 +52,11 @@ pip install intangible-valuation[mcp]     # + MCP server
 pip install intangible-valuation[dev]     # + pytest, ruff, mypy
 ```
 
-## Quick Start
+## Quick Start (≤ 5 minutes)
+
+**Fastest path:** no install — point an MCP client at the hosted endpoint
+`https://intangible-valuation.simonmak.com/api/mcp` (Streamable HTTP); or one line locally:
+`pip install "intangible-valuation[mcp]"`.
 
 ### Python Library
 
