@@ -172,6 +172,30 @@ Copy the `skills/` directory to your agent's skills folder:
 | **Litigation** | Lost profits, pre-judgment interest | 17 |
 | **Transfer Pricing** | CUP method, OECD guidelines | 18 |
 
+### The three approaches
+
+```mermaid
+flowchart TB
+    ASSET["Target intangible asset"] --> COST["Cost approach<br/>reproduction · replacement"]
+    ASSET --> MKT["Market approach<br/>comparable transactions · royalty capitalisation"]
+    ASSET --> INC["Income approach<br/>relief-from-royalty · MPEEM · incremental cash flow"]
+    COST --> R["ValuationResult"]
+    MKT --> R
+    INC --> R
+    R --> PPA["Purchase price allocation (ASC 805 / IFRS 3)"]
+    R --> IMP["Impairment testing (ASC 350 / IAS 36)"]
+```
+
+### Distribution
+
+```mermaid
+flowchart LR
+    PKG["intangible-valuation<br/>22 modules · 124+ functions"] --> L["pip install intangible-valuation"]
+    PKG --> MP["pip install intangible-valuation[mcp]<br/>→ 14-tool MCP server"]
+    MP --> T1["stdio (local)"]
+    MP --> T2["hosted Streamable HTTP<br/>intangible-valuation.simonmak.com/api/mcp"]
+```
+
 ## Why This Library?
 
 - **Auditable** — Every function returns `ValuationResult` with value, method, formula reference, assumptions, and step-by-step calculation breakdown
