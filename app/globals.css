@@ -1,27 +1,28 @@
 @import "tailwindcss";
 
-/* Dark mode is class-based (darkMode: "class"); `.dark` is set on <html>. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Dark is the site default; toggled via data-theme on <html> (APG parity). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Primary scale aligned with www.simonmak.com — brand teal oklch(0.42 0.10 195). */
+/* Palette locked to the Ascent Partners design tokens (@simonmak-ascent/shared). */
 @theme {
-  --color-primary-50: oklch(0.97 0.01 195);
-  --color-primary-100: oklch(0.94 0.02 195);
-  --color-primary-200: oklch(0.88 0.03 195);
-  --color-primary-300: oklch(0.78 0.05 195);
-  --color-primary-400: oklch(0.62 0.08 195);
-  --color-primary-500: oklch(0.52 0.1 195);
-  --color-primary-600: oklch(0.42 0.1 195);
-  --color-primary-700: oklch(0.32 0.1 195);
-  --color-primary-800: oklch(0.26 0.08 195);
-  --color-primary-900: oklch(0.2 0.06 195);
-  --color-primary-950: oklch(0.15 0.04 195);
+  --color-primary-50: #e8f5f8;
+  --color-primary-100: #cde9ef;
+  --color-primary-200: #9ed4e0;
+  --color-primary-300: #5fb6c9;
+  --color-primary-400: #2a97ae;
+  --color-primary-500: #0085ae;
+  --color-primary-600: #005467;
+  --color-primary-700: #00455a;
+  --color-primary-800: #003a4c;
+  --color-primary-900: #00303f;
+  --color-primary-950: #002432;
 
-  --color-accent-500: #F5A623;
-  --color-accent-600: #D4891A;
+  --color-accent-500: #dfb947;
+  --color-accent-600: #bf9b2a;
 
-  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-sans: var(--font-open-sans), "Open Sans", system-ui, sans-serif;
+  --font-serif: var(--font-titillium), "Titillium Web", system-ui, sans-serif;
+  --font-accent: var(--font-raleway), "Raleway", sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'Fira Code', monospace;
 }
 
@@ -54,7 +55,7 @@
 }
 
 @utility container-page {
-  max-width: 80rem;
+  max-width: 65.125rem;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
