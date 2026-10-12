@@ -53,8 +53,8 @@ export interface LandingCopy {
 
 export const LANDING_COPY: Record<Locale, LandingCopy> = {
   en: {
-    type: "MCP server",
-    name: "Intangible Asset Valuation MCP",
+    type: "MCP server + REST API",
+    name: "Intangible Asset Valuation",
     value: "Value IP, technology, customer and goodwill assets for PPA, impairment and royalty workflows.",
     thesis: "Price the assets a balance sheet cannot see — and show the working, to the standard an auditor will test.",
     stats: [
@@ -96,8 +96,8 @@ export const LANDING_COPY: Record<Locale, LandingCopy> = {
     langLabel: "Language",
   },
   zh: {
-    type: "MCP 服务器",
-    name: "Intangible Asset Valuation MCP",
+    type: "MCP 服务器 + REST API",
+    name: "Intangible Asset Valuation",
     value: "为收购价分摊、减值及权利金场景评估知识产权、技术、客户及商誉资产。",
     thesis: "为资产负债表看不见的资产定价——并摊开推理过程，对齐核数师将检验的准则。",
     stats: [
@@ -139,8 +139,8 @@ export const LANDING_COPY: Record<Locale, LandingCopy> = {
     langLabel: "语言",
   },
   hk: {
-    type: "MCP 伺服器",
-    name: "Intangible Asset Valuation MCP",
+    type: "MCP 伺服器 + REST API",
+    name: "Intangible Asset Valuation",
     value: "為收購價分攤、減值及權利金場景評估知識產權、技術、客戶及商譽資產。",
     thesis: "為資產負債表看不見的資產定價——並攤開推理過程，對齊核數師將檢驗的準則。",
     stats: [
