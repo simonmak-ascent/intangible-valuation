@@ -22,6 +22,15 @@ export const metadata: Metadata = {
     siteName: "Intangible Valuation",
   },
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: "https://intangible-valuation.simonmak.com",
+    languages: {
+      "en-GB": "https://intangible-valuation.simonmak.com",
+      "zh-Hans": "https://intangible-valuation.simonmak.com/zh",
+      "zh-Hant-HK": "https://intangible-valuation.simonmak.com/hk",
+      "x-default": "https://intangible-valuation.simonmak.com",
+    },
+  },
 };
 
 // Blocking theme init — dark default, persisted choice (APG parity, no FOUC).
