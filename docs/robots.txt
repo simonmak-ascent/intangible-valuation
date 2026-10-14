@@ -17,4 +17,4 @@ Disallow: /
 User-agent: FacebookBot
 Disallow: /
 
-Sitemap: https://intangible-valuation.simonmak.com/sitemap.xml
+Sitemap: https://intangible-valuation.ascent-partners.com/sitemap.xml

@@ -87,7 +87,7 @@ intangible-valuation-mcp = "mcp_server.server:main"
 
 [project.urls]
 Homepage = "https://github.com/simonmak-ascent/intangible-valuation"
-Documentation = "https://intangible-valuation.simonmak.com"
+Documentation = "https://intangible-valuation.ascent-partners.com"
 Repository = "https://github.com/simonmak-ascent/intangible-valuation"
 Changelog = "https://github.com/simonmak-ascent/intangible-valuation/releases"
 "Bug Tracker" = "https://github.com/simonmak-ascent/intangible-valuation/issues"

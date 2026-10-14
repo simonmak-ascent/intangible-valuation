@@ -7,6 +7,6 @@ export async function GET() {
     endpoints: CATALOG,
     total_methods: CATALOG.length,
     categories: ["core", "approaches", "income_methods", "asset_types", "advanced"],
-    docs_url: "https://intangible-valuation.simonmak.com",
+    docs_url: "https://intangible-valuation.ascent-partners.com",
   });
 }

@@ -51,7 +51,7 @@ intangible-valuation-mcp
 No install, no API key — point the client at the Streamable HTTP endpoint:
 
 ```
-https://intangible-valuation.simonmak.com/api/mcp
+https://intangible-valuation.ascent-partners.com/api/mcp
 ```
 
 ## Available Tools

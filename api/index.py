@@ -518,7 +518,7 @@ class handler(BaseHTTPRequestHandler):
                     "total_methods": len(ROUTES),
                     "library_methods": len(_LIB_FUNCTIONS),
                     "hardcoded_methods": len(HARDCODED),
-                    "docs": "https://intangible-valuation.simonmak.com",
+                    "docs": "https://intangible-valuation.ascent-partners.com",
                 },
             )
 

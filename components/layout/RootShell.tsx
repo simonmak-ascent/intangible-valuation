@@ -23,12 +23,12 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   alternates: {
-    canonical: "https://intangible-valuation.simonmak.com",
+    canonical: "https://intangible-valuation.ascent-partners.com",
     languages: {
-      "en-GB": "https://intangible-valuation.simonmak.com",
-      "zh-Hans": "https://intangible-valuation.simonmak.com/zh",
-      "zh-Hant-HK": "https://intangible-valuation.simonmak.com/hk",
-      "x-default": "https://intangible-valuation.simonmak.com",
+      "en-GB": "https://intangible-valuation.ascent-partners.com",
+      "zh-Hans": "https://intangible-valuation.ascent-partners.com/zh",
+      "zh-Hant-HK": "https://intangible-valuation.ascent-partners.com/hk",
+      "x-default": "https://intangible-valuation.ascent-partners.com",
     },
   },
 };

@@ -30,7 +30,7 @@ PYPROJECT = ROOT / "pyproject.toml"
 MCP_PYPROJECT = ROOT / "mcp_server" / "pyproject.toml"
 CHANGELOG = ROOT / "CHANGELOG.md"
 
-REMOTE_URL = "https://intangible-valuation.simonmak.com/api/mcp"
+REMOTE_URL = "https://intangible-valuation.ascent-partners.com/api/mcp"
 PACKAGE_NAME = "intangible-valuation"
 CONSOLE_SCRIPT = "intangible-valuation-mcp"
 

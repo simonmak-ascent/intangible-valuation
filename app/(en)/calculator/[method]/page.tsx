@@ -3,7 +3,7 @@ import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { MethodCalculator } from "./MethodCalculator";
 import { CATALOG_SLUGS, getCatalogMethod } from "@/lib/valuation/catalog";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://intangible-valuation.simonmak.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://intangible-valuation.ascent-partners.com";
 
 export function generateStaticParams() {
   return CATALOG_SLUGS.map((method) => ({ method }));

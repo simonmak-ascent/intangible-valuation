@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-serif text-lg font-semibold text-neutral-900 dark:text-white mb-2">6. Your Rights</h2>
           <p>
-            You may access, correct, export, or delete your data. Contact support@intangible-valuation.simonmak.com to
+            You may access, correct, export, or delete your data. Contact support@intangible-valuation.ascent-partners.com to
             exercise these rights.
           </p>
         </section>

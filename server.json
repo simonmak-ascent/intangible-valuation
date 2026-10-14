@@ -4,7 +4,7 @@
   "title": "Intangible Asset Valuation MCP Server",
   "description": "Intangible asset valuation: 14 tools, 124+ formulas for IP, technology, goodwill, PPA, impairment.",
   "version": "2.1.2",
-  "websiteUrl": "https://intangible-valuation.simonmak.com",
+  "websiteUrl": "https://intangible-valuation.ascent-partners.com",
   "repository": {
     "url": "https://github.com/simonmak-ascent/intangible-valuation",
     "source": "github"
@@ -12,7 +12,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://intangible-valuation.simonmak.com/api/mcp"
+      "url": "https://intangible-valuation.ascent-partners.com/api/mcp"
     }
   ],
   "packages": [

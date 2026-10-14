@@ -34,7 +34,7 @@ pip install intangible-valuation[mcp]
 {
   "mcpServers": {
     "intangible-valuation-cloud": {
-      "url": "https://intangible-valuation.simonmak.com/api/mcp"
+      "url": "https://intangible-valuation.ascent-partners.com/api/mcp"
     }
   }
 }`}</pre>

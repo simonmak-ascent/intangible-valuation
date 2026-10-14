@@ -77,7 +77,7 @@ export default function TermsPage() {
         <section>
           <h2 className="font-serif text-lg font-semibold text-neutral-900 dark:text-white">8. Contact</h2>
           <p>
-            Questions about these terms: support@intangible-valuation.simonmak.com.
+            Questions about these terms: support@intangible-valuation.ascent-partners.com.
           </p>
         </section>
       </div>

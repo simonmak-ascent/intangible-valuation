@@ -9,7 +9,7 @@
   ],
   "rules": [
     "Install with `pip install 'intangible-valuation[mcp]'`; run the stdio server with `intangible-valuation-mcp` or `uvx --from intangible-valuation intangible-valuation-mcp`.",
-    "The hosted Streamable HTTP endpoint is https://intangible-valuation.simonmak.com/api/mcp.",
+    "The hosted Streamable HTTP endpoint is https://intangible-valuation.ascent-partners.com/api/mcp.",
     "All 14 MCP tools (`valuation_*`) are deterministic, read-only calculators; they never fetch market data, so supply every input explicitly.",
     "Prefer the dedicated asset tools (`valuation_ip`, `valuation_technology`, `valuation_customer`) over the generic `valuation_income_methods` when the asset class is known.",
     "Use `valuation_goodwill_ppa` for purchase price allocation and `valuation_impairment` for goodwill/intangible impairment testing."

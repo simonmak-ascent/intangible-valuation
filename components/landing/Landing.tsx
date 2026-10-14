@@ -6,7 +6,7 @@ import { ConnectTabs } from "@/components/landing/ConnectTabs";
 const TOOLS_URL = "https://www.ascent-partners.com/tools";
 const TECH_URL = "https://www.ascent-partners.com/services/technology-advisory";
 const CONTACT_URL = "https://www.ascent-partners.com/about#contact";
-const DOCS_URL = "https://intangible-valuation.simonmak.com";
+const DOCS_URL = "https://intangible-valuation.ascent-partners.com";
 const REPO_URL = "https://github.com/simonmak-ascent/intangible-valuation";
 
 function LocaleSwitcher({ locale, label }: { locale: Locale; label: string }) {

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CATALOG_SLUGS } from "@/lib/valuation/catalog";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://intangible-valuation.simonmak.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://intangible-valuation.ascent-partners.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [

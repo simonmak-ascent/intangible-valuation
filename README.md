@@ -7,11 +7,11 @@
 [![CI](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.simonmak--ascent%2Fintangible--valuation-4CAF50)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.simonmak-ascent/intangible-valuation)
 [![Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation)
-[![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.simonmak.com/api/mcp)
+[![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.ascent-partners.com/api/mcp)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-intangible--valuation.simonmak.com-blue)](https://intangible-valuation.simonmak.com)
+[![Docs](https://img.shields.io/badge/docs-intangible--valuation.ascent-partners.com-blue)](https://intangible-valuation.ascent-partners.com)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/simonmak-ascent/intangible-valuation/badge)](https://scorecard.dev/viewer/?uri=github.com/simonmak-ascent/intangible-valuation)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -55,7 +55,7 @@ pip install intangible-valuation[dev]     # + pytest, ruff, mypy
 ## Quick Start (≤ 5 minutes)
 
 **Fastest path:** no install — point an MCP client at the hosted endpoint
-`https://intangible-valuation.simonmak.com/api/mcp` (Streamable HTTP); or one line locally:
+`https://intangible-valuation.ascent-partners.com/api/mcp` (Streamable HTTP); or one line locally:
 `pip install "intangible-valuation[mcp]"`.
 
 ### Python Library
@@ -102,7 +102,7 @@ python mcp_server/server.py
 **Hosted (Streamable HTTP)** — no install, no API key:
 
 ```
-https://intangible-valuation.simonmak.com/api/mcp
+https://intangible-valuation.ascent-partners.com/api/mcp
 ```
 
 **OpenCode** — add to `opencode.json`:
@@ -110,13 +110,13 @@ https://intangible-valuation.simonmak.com/api/mcp
 ```json
 "intangible-valuation": {
   "type": "remote",
-  "url": "https://intangible-valuation.simonmak.com/api/mcp",
+  "url": "https://intangible-valuation.ascent-partners.com/api/mcp",
   "timeout": 60000
 }
 ```
 
 **Claude Desktop / Cursor** — add the HTTP URL
-`https://intangible-valuation.simonmak.com/api/mcp` as an MCP server, or run the
+`https://intangible-valuation.ascent-partners.com/api/mcp` as an MCP server, or run the
 stdio entrypoint above.
 
 **MCP Registry & Glama** — published as
@@ -193,7 +193,7 @@ flowchart LR
     PKG["intangible-valuation<br/>22 modules · 124+ functions"] --> L["pip install intangible-valuation"]
     PKG --> MP["pip install intangible-valuation[mcp]<br/>→ 14-tool MCP server"]
     MP --> T1["stdio (local)"]
-    MP --> T2["hosted Streamable HTTP<br/>intangible-valuation.simonmak.com/api/mcp"]
+    MP --> T2["hosted Streamable HTTP<br/>intangible-valuation.ascent-partners.com/api/mcp"]
 ```
 
 ## Why This Library?
@@ -228,7 +228,7 @@ python scripts/generate_mcp.py
 
 ## Documentation
 
-- **API Reference:** [intangible-valuation.simonmak.com](https://intangible-valuation.simonmak.com)
+- **API Reference:** [intangible-valuation.ascent-partners.com](https://intangible-valuation.ascent-partners.com)
 - **PyPI:** [pypi.org/project/intangible-valuation](https://pypi.org/project/intangible-valuation/)
 - **MCP Server Guide:** [docs/mcp.md](docs/mcp.md)
 - **AI Skills Guide:** [docs/skills.md](docs/skills.md)
