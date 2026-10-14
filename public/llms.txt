@@ -6,7 +6,7 @@
 
 - Hosted MCP endpoint (Streamable HTTP): https://intangible-valuation.ascent-partners.com/api/mcp
 - Local stdio server: `uvx --from intangible-valuation intangible-valuation-mcp` or `pip install 'intangible-valuation[mcp]' && intangible-valuation-mcp`
-- Official MCP Registry name: `io.github.simonmak-ascent/intangible-valuation`
+- Official MCP Registry name: `com.ascent-partners/intangible-valuation`
 - Glama listing: https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation
 - Context7 library ID: `/simonmak-ascent/intangible-valuation`
 

@@ -21,7 +21,7 @@ export function hrefFor(locale: Locale, path: string): string {
 }
 
 const ENDPOINT = "https://intangible-valuation.ascent-partners.com/api/mcp";
-const REGISTRY = "io.github.simonmak-ascent/intangible-valuation";
+const REGISTRY = "com.ascent-partners/intangible-valuation";
 
 export interface LandingCopy {
   type: string;

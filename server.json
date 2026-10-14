@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.simonmak-ascent/intangible-valuation",
+  "name": "com.ascent-partners/intangible-valuation",
   "title": "Intangible Asset Valuation MCP Server",
   "description": "Intangible asset valuation: 14 tools, 124+ formulas for IP, technology, goodwill, PPA, impairment.",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "websiteUrl": "https://intangible-valuation.ascent-partners.com",
   "repository": {
     "url": "https://github.com/simonmak-ascent/intangible-valuation",
@@ -19,7 +19,7 @@
     {
       "registryType": "pypi",
       "identifier": "intangible-valuation",
-      "version": "2.1.3",
+      "version": "2.1.4",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {

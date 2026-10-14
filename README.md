@@ -1,11 +1,11 @@
 # Intangible Asset Valuation Engine
 
-<!-- mcp-name: io.github.simonmak-ascent/intangible-valuation -->
+<!-- mcp-name: com.ascent-partners/intangible-valuation -->
 
 > **A complete intangible asset valuation library** implementing 124+ functions from the *Intangible Asset Valuation* textbook — Python library, MCP server, and AI-agent skills.
 
 [![CI](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.simonmak--ascent%2Fintangible--valuation-4CAF50)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.simonmak-ascent/intangible-valuation)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.ascent-partners%2Fintangible-valuation-4CAF50)](https://registry.modelcontextprotocol.io/v0/servers?search=com.ascent-partners/intangible-valuation)
 [![Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation)
 [![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.ascent-partners.com/api/mcp)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
@@ -120,7 +120,7 @@ https://intangible-valuation.ascent-partners.com/api/mcp
 stdio entrypoint above.
 
 **MCP Registry & Glama** — published as
-`io.github.simonmak-ascent/intangible-valuation`. The
+`com.ascent-partners/intangible-valuation`. The
 [`server.json`](server.json) manifest declares both the hosted
 `streamable-http` remote and a PyPI **stdio** package, and
 [`glama.json`](glama.json) carries the Glama listing. Install and run the stdio
