@@ -1,6 +1,6 @@
 [project]
 name = "intangible-valuation"
-version = "2.1.2"
+version = "2.1.3"
 description = "Python library for intangible asset valuation implementing cost, market, and income approaches. 124+ functions for patents, brands, goodwill, PPA, and more."
 readme = "README.md"
 license = {text = "MIT"}
