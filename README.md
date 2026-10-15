@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml/badge.svg)](https://github.com/simonmak-ascent/intangible-valuation/actions/workflows/ci.yml)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-com.ascent-partners%2Fintangible-valuation-4CAF50)](https://registry.modelcontextprotocol.io/v0/servers?search=com.ascent-partners/intangible-valuation)
-[![Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation)
+[![Glama](https://glama.ai/mcp/connectors/com.ascent-partners/intangible-valuation/badges/score.svg)](https://glama.ai/mcp/connectors/com.ascent-partners/intangible-valuation)
 [![MCP tools](https://img.shields.io/badge/MCP-14%20tools-4CAF50)](https://intangible-valuation.ascent-partners.com/api/mcp)
 [![PyPI](https://img.shields.io/pypi/v/intangible-valuation.svg)](https://pypi.org/project/intangible-valuation/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -132,7 +132,7 @@ uvx --from intangible-valuation intangible-valuation-mcp              # uvx (no 
 ```
 
 Listed on
-[Glama](https://glama.ai/mcp/servers/simonmak-ascent/intangible-valuation) and
+[Glama](https://glama.ai/mcp/connectors/com.ascent-partners/intangible-valuation) and
 the [Official MCP Registry](https://registry.modelcontextprotocol.io).
 
 
