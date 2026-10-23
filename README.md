@@ -226,6 +226,8 @@ mypy src/
 python scripts/generate_mcp.py
 ```
 
+> **Note:** CI and deployment run through the APG workbench pipeline.
+
 ## Documentation
 
 - **API Reference:** [intangible-valuation.ascent-partners.com](https://intangible-valuation.ascent-partners.com)
