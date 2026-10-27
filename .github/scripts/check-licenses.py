@@ -18,10 +18,12 @@ def denied(expr: str) -> bool:
     expr = expr.strip()
     while expr.startswith("(") and expr.endswith(")"):
         expr = expr[1:-1].strip()
-    ors = re.split(" OR ", expr, flags=re.IGNORECASE)
+    # pip-licenses joins a dual licence with "; " — "BSD; GPL" means the user may
+    # take either, so it is a choice, not a conjunction. Treat ";" like " OR ".
+    ors = re.split(r"\s+OR\s+|;", expr, flags=re.IGNORECASE)
     if len(ors) > 1:
         return all(denied(part) for part in ors)
-    ands = re.split(r"\s+AND\s+|;", expr, flags=re.IGNORECASE)
+    ands = re.split(r"\s+AND\s+", expr, flags=re.IGNORECASE)
     if len(ands) > 1:
         return any(denied(part) for part in ands)
     return bool(DENY.search(expr))
