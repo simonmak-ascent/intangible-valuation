@@ -30,7 +30,7 @@
     "stripe": "^16.0.0",
     "surrealdb": "^1.0.0",
     "ulid": "^2.3.0",
-    "zod": "^3.23.0"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
