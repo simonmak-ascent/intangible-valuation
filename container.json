@@ -45,7 +45,12 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The ALB group probes TCP because the app has no health path. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release."
+      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The ALB group probes TCP because the app has no health path. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
+      "cmd": [
+        "sh",
+        "-c",
+        "exec python pylaunch.py --app api.index:handler --host 0.0.0.0 --port 8061"
+      ]
     },
     {
       "name": "intangible-valuation-mcp",
@@ -69,7 +74,12 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile is the stdio MCP for the registry and is unrelated. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release."
+      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile is the stdio MCP for the registry and is unrelated. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
+      "cmd": [
+        "sh",
+        "-c",
+        "exec python pylaunch.py --app api.mcp:handler --host 0.0.0.0 --port 8060"
+      ]
     }
   ]
 }
