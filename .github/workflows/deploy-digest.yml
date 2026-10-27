@@ -3,16 +3,15 @@ name: deploy-digest
 # Deploy one or more containers on one node, by digest, in a single job.
 #
 # Why a list: three containers across three nodes used to mean nine queued jobs
-# fighting for three runners — queue wait reached 4m44s while each job only ran
-# 20-35 s. One job per node fixes that: the node pulls once, then swaps each
-# container while the runner is already warm.
+# behind three runners — measured queue wait 4m44s against a 20-35 s job. One job
+# per node fixes that: the image is pulled once, then each container is swapped
+# while the runner is already warm.
 #
-#   gh workflow run deploy-digest.yml -f containers=iv-api,iv-mcp -f digest=sha256:… -f runner=apg-ecs-01
+#   gh workflow run deploy-digest.yml -f containers=iv-api,iv-mcp \
+#     -f digest=sha256:… -f runner=apg-ecs-01
 #
-# Port, uid, health and command come from container.json, so the declaration
-# stays the single source of truth. Nothing is removed until the image is on
-# disk and the env file is readable, and a probe container answers before the
-# live one is replaced (OI-46).
+# Port, health, env file and command come from container.json through
+# scripts/container-spec.py, so the declaration stays the single source of truth.
 
 on:
   workflow_dispatch:
@@ -39,7 +38,7 @@ permissions:
   contents: read
   packages: read
 
-# The same container on the same node is never deployed twice at once; a second
+# The same containers on the same node are never deployed twice at once; a second
 # dispatch waits instead of racing the first into `docker rm`.
 concurrency:
   group: deploy-${{ inputs.runner }}-${{ inputs.containers }}
@@ -68,66 +67,56 @@ jobs:
           ref="ghcr.io/${{ github.repository }}@$DIGEST"
 
           # one pull for the image, not one per container: they share it
-          for attempt in 1 2 3; do
-            if docker pull "$ref"; then break; fi
+          attempt=1
+          while ! docker pull "$ref"; do
             echo "pull attempt $attempt failed; retrying in 10s" >&2
+            attempt=$((attempt + 1))
+            [ "$attempt" -gt 3 ] && exit 1
             sleep 10
-            [ "$attempt" = 3 ] && exit 1
           done
 
           names="${DOCKER_NAMES:-$CONTAINERS}"
           IFS=',' read -r -a mans <<< "$CONTAINERS"
-          IFS=',' read -r -a dns  <<< "$names"
+          IFS=',' read -r -a dns <<< "$names"
 
           for i in "${!mans[@]}"; do
-            man="${mans[$i]}"; name="${dns[$i]:-${mans[$i]}}"
-            spec=$(python3 - "$man" <<'PY'
-import json, sys
-name = sys.argv[1]
-d = json.load(open("container.json"))
-items = d.get("containers", [d])
-s = next((c for c in items if c.get("name") == name), None)
-if s is None:
-    raise SystemExit(f"no container named {name} in container.json")
-h = s.get("health") or {}
-print(json.dumps({
-    "port": s["port"],
-    "proto": h.get("proto", "http"),
-    "path": h.get("path", "/"),
-    "host": h.get("host", ""),
-    "envfile": (s.get("run") or {}).get("envFile", ""),
-    "cmd": s.get("cmd") or [],
-}))
-PY
-)
-            port=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1])["port"])' "$spec")
-            proto=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1])["proto"])' "$spec")
-            path=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1])["path"])' "$spec")
-            vhost=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1])["host"])' "$spec")
-            envf=$(python3 -c 'import json,sys;print(json.loads(sys.argv[1])["envfile"])' "$spec")
-            mapfile -t cmd < <(python3 -c 'import json,sys;[print(a) for a in json.loads(sys.argv[1])["cmd"]]' "$spec")
+            man="${mans[$i]}"
+            name="${dns[$i]:-${mans[$i]}}"
+
+            . <(python3 scripts/container-spec.py "$man")
+            mapfile -t CMD < <(python3 scripts/container-spec.py "$man" --cmd)
 
             # pre-flight: nothing is removed until these hold
             docker image inspect "$ref" >/dev/null
-            if [ -n "$envf" ] && [ ! -r "$envf" ]; then
-              echo "env file $envf is not readable by $(id -un)" >&2; exit 1
+            if [ -n "${ENVFILE:-}" ] && [ ! -r "$ENVFILE" ]; then
+              echo "env file $ENVFILE is not readable by $(id -un)" >&2
+              exit 1
             fi
 
-            opts=(--restart unless-stopped -e NODE_ENV=production -e "PORT=$port")
-            [ -n "$envf" ] && opts+=(--env-file "$envf")
+            opts=(--restart unless-stopped -e NODE_ENV=production -e "PORT=$PORT")
+            [ -n "${ENVFILE:-}" ] && opts+=(--env-file "$ENVFILE")
 
-            # probe on a spare port, so a bad command never takes the live one down
+            # probe on a spare port: a bad command must not take the live one down
             docker rm -f "$name.probe" >/dev/null 2>&1 || true
-            docker run -d --name "$name.probe" "${opts[@]}" -p "127.0.0.1:$((port+10000)):$port" \
-              "$ref" ${cmd[@]+"${cmd[@]}"} >/dev/null
+            docker run -d --name "$name.probe" "${opts[@]}" \
+              -p "127.0.0.1:$((PORT + 10000)):$PORT" \
+              "$ref" ${CMD[@]+"${CMD[@]}"} >/dev/null
+
             ok=0
             for _ in 1 2 3 4 5 6 7 8; do
-              if [ "$proto" = tcp ] && [ "$(docker inspect "$name.probe" -f '{{.State.Status}}')" = running ]; then ok=1; break; fi
-              if [ "$proto" != tcp ] && [ "$(curl -sS -m 3 -o /dev/null -w '%{http_code}' -H "Host: ${vhost:-localhost}" "http://127.0.0.1:$((port+10000))$path" || true)" = 200 ]; then ok=1; break; fi
+              if [ "$PROTO" = tcp ]; then
+                [ "$(docker inspect "$name.probe" -f '{{.State.Status}}')" = running ] && { ok=1; break; }
+              else
+                code=$(curl -sS -m 3 -o /dev/null -w '%{http_code}' \
+                       -H "Host: ${HEALTH_HOST:-localhost}" \
+                       "http://127.0.0.1:$((PORT + 10000))$HEALTH_PATH" || true)
+                [ "$code" = 200 ] && { ok=1; break; }
+              fi
               sleep 1
             done
+
             if [ "$ok" != 1 ]; then
-              echo "probe for $name did not come up; live container untouched" >&2
+              echo "probe for $name did not come up; the live container is untouched" >&2
               docker logs --tail 30 "$name.probe" >&2 || true
               docker rm -f "$name.probe" >/dev/null 2>&1 || true
               exit 1
@@ -135,8 +124,8 @@ PY
             docker rm -f "$name.probe" >/dev/null 2>&1
 
             docker rm -f "$name" >/dev/null 2>&1 || true
-            docker run -d --name "$name" "${opts[@]}" -p "0.0.0.0:$port:$port" \
-              "$ref" ${cmd[@]+"${cmd[@]}"} >/dev/null
+            docker run -d --name "$name" "${opts[@]}" -p "0.0.0.0:$PORT:$PORT" \
+              "$ref" ${CMD[@]+"${CMD[@]}"} >/dev/null
 
             for _ in 1 2 3 4 5; do
               [ "$(docker inspect "$name" -f '{{.State.Status}}')" = running ] && break
