@@ -22,7 +22,8 @@ def main() -> int:
         print("usage: container-spec.py <name> [--cmd]", file=sys.stderr)
         return 2
     name = args[0]
-    d = json.load(open("container.json"))
+    with open("container.json") as fh:
+        d = json.load(fh)
     items = d.get("containers", [d])
     spec = next((c for c in items if c.get("name") == name), None)
     if spec is None:
