@@ -26,7 +26,7 @@
     {
       "name": "intangible-valuation-api",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:46d3e24ced126d8f8c816ea3fbaa99ffa951e8bae2672964fc4c70dcb6367eca",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
       "port": 8061,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
@@ -55,7 +55,7 @@
     {
       "name": "intangible-valuation-mcp",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:46d3e24ced126d8f8c816ea3fbaa99ffa951e8bae2672964fc4c70dcb6367eca",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
       "port": 8060,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
