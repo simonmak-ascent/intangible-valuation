@@ -3,9 +3,11 @@
     {
       "name": "intangible-valuation",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation-web:20261027T013525",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation-web:20261027T014632",
       "port": 3121,
-      "hosts": ["intangible-valuation.ascent-partners.com"],
+      "hosts": [
+        "intangible-valuation.ascent-partners.com"
+      ],
       "health": {
         "path": "/",
         "host": "intangible-valuation.ascent-partners.com"
@@ -19,14 +21,16 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "The node's own Next.js release (node server.js, not a standalone .next) copied into the image; uid 1001 is the deploy user the unit ran as. The app has no AUTH_SECRET anywhere — the unit's env file carries only PORT — so NextAuth logs MissingSecret on every request in production too; behaviour is identical between unit and container."
+      "notes": "The node's own Next.js release (node server.js, not a standalone .next) copied into the image; uid 1001 is the deploy user the unit ran as. The app has no AUTH_SECRET anywhere \u2014 the unit's env file carries only PORT \u2014 so NextAuth logs MissingSecret on every request in production too; behaviour is identical between unit and container. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release."
     },
     {
       "name": "intangible-valuation-api",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation-py:20261027T013525",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation-py:20261027T014632",
       "port": 8061,
-      "hosts": ["intangible-valuation.ascent-partners.com"],
+      "hosts": [
+        "intangible-valuation.ascent-partners.com"
+      ],
       "health": {
         "proto": "tcp",
         "path": "/"
@@ -40,14 +44,16 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The ALB group probes TCP because the app has no health path."
+      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The ALB group probes TCP because the app has no health path. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release."
     },
     {
       "name": "intangible-valuation-mcp",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation-py:20261027T013525",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation-py:20261027T014632",
       "port": 8060,
-      "hosts": ["intangible-valuation.ascent-partners.com"],
+      "hosts": [
+        "intangible-valuation.ascent-partners.com"
+      ],
       "health": {
         "proto": "tcp",
         "path": "/"
@@ -61,7 +67,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile is the stdio MCP for the registry and is unrelated."
+      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile is the stdio MCP for the registry and is unrelated. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release."
     }
   ]
 }
