@@ -3,7 +3,7 @@
     {
       "name": "intangible-valuation",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:9d086113f2adab88b487e7a32ee6539954292d13519b9173ea8fabd107bdfe83",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:4b8c49b03d6e79b92186b2ca7b865708d3166a3bd100a48646a7dbb1421b0b8a",
       "port": 3121,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
