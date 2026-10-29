@@ -1,19 +1,33 @@
-name: Image
+name: image
 
-# Builds and publishes the web application image, per the estate decision
-# "build on the node, publish to GHCR, deploy by digest" (apg-infra standards.md):
-# the heavy install and build happen on the node runner, and the push uses the job's
-# own short-lived GITHUB_TOKEN — no long-lived registry credential on any host.
+# Publish a node-built image to GHCR.
 #
-# A pull request only builds (validating the Dockerfile); merging to main publishes
-# and prints the digest, which is what `container.json` pins.
+# The image is built on the node — where the release artefacts already are — and this
+# job only pushes it, from a runner on that node, with the job's own short-lived
+# GITHUB_TOKEN. No registry credential is stored on a host.
+#
+# This repository had no image workflow and no Dockerfile for the site, so the
+# container running on :3121 could not be rebuilt from anything here (OI-40).
+# Build with Dockerfile.web:
+#
+#   docker build -f Dockerfile.web -t intangible-valuation:$(date -u +%Y%m%dT%H%M%S) .
+#   gh workflow run image.yml -f image=intangible-valuation:20261029T133000 -f runner=apg-ecs-01
+#
+# The job prints the digest; pin it in `container.json` and run the digest deploy.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      image:
+        description: "Local image tag, e.g. intangible-valuation:20261029T133000"
+        required: true
+        type: string
+      runner:
+        description: "Runner label on the node that holds the image"
+        required: true
+        type: choice
+        options: [apg-ecs-01, apg-ecs-02, apg-ecs-03]
+        default: apg-ecs-01
 
 permissions:
   contents: read
@@ -23,38 +37,37 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  image:
-    runs-on: [self-hosted, apg-ci-04]
+  push:
+    runs-on:
+      - self-hosted
+      - ${{ inputs.runner }}
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR with the job token
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build (and publish on main)
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile.web
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-
-      - name: Report the digest
+      - name: Log in to GHCR
         run: |
-          echo "digest: ${{ steps.build.outputs.digest }}"
-          echo "### Image digest" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "Pin this digest in container.json, then run the digest deploy." >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push and record the digest
+        id: push
+        run: |
+          set -eu
+          src="${{ inputs.image }}"
+          case "$src" in *:*) ;; *) echo "image must be name:stamp (got $src)" >&2; exit 1 ;; esac
+          dst="ghcr.io/${{ github.repository }}:${src#*:}"
+          docker tag "$src" "$dst"
+          docker push "$dst"
+          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$dst")"
+          echo "$digest"
+          {
+            echo "### published"
+            echo ""
+            echo '```'
+            echo "$digest"
+            echo '```'
+            echo ""
+            echo "Pin it in \`container.json\` as \`image: $digest\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Log out
+        if: always()
+        run: docker logout ghcr.io || true
