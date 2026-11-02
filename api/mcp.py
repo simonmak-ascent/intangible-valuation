@@ -29,12 +29,41 @@ from mcp_server.tool_surface import (  # noqa: E402
 
 PROTOCOL_VERSION = "2025-06-18"
 
-_CORS = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version",
-}
+# Origins a browser may call from. The MCP transport specification requires a server to validate
+# the Origin header on every incoming connection and answer 403 when a present Origin is invalid;
+# a wildcard Access-Control-Allow-Origin does not satisfy that, because it governs who may *read*
+# a reply rather than who may *speak* to the server. A client that sends no Origin — every CLI and
+# SDK — stays allowed.
+DEFAULT_ALLOWED_ORIGINS = frozenset(
+    {
+        "https://intangible-valuation.ascent-partners.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    }
+)
+
+
+def allowed_origins() -> frozenset:
+    """The browser origins permitted to call this endpoint (``MCP_ALLOWED_ORIGINS`` overrides)."""
+    raw = _os.environ.get("MCP_ALLOWED_ORIGINS", "").strip()
+    if not raw:
+        return DEFAULT_ALLOWED_ORIGINS
+    return frozenset(o.strip() for o in raw.split(",") if o.strip())
+
+
+def _cors(origin=None) -> dict:
+    headers = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version",
+        "Vary": "Origin",
+    }
+    if origin is not None and origin in allowed_origins():
+        headers["Access-Control-Allow-Origin"] = origin
+    return headers
+
+
+_CORS = _cors()
 
 
 def _ok(payload: dict) -> tuple:
@@ -157,13 +186,39 @@ class handler(BaseHTTPRequestHandler):  # noqa: N801
         if body:
             self.wfile.write(body)
 
+    def _origin(self):
+        """The Origin header, or None for a non-browser client."""
+        return self.headers.get("Origin")
+
+    def _refuse_origin(self):
+        """403 for a present but unapproved Origin, before anything reaches the protocol layer."""
+        origin = self._origin()
+        if origin is None or origin in allowed_origins():
+            return False
+        body = _json.dumps(
+            {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Origin not allowed"}}
+        ).encode()
+        self._respond(403, _cors(origin), body)
+        return True
+
     def do_GET(self):  # noqa: N802
-        self._respond(*handle_request("GET", self.path, None))
+        if self._refuse_origin():
+            return
+        code, headers, body = handle_request("GET", self.path, None)
+        self._respond(code, {**headers, **_cors(self._origin())}, body)
 
     def do_POST(self):  # noqa: N802
+        if self._refuse_origin():
+            return
         length = int(self.headers.get("Content-Length", 0))
         body_raw = self.rfile.read(length).decode() if length else "{}"
-        self._respond(*handle_request("POST", self.path, body_raw))
+        code, headers, body = handle_request("POST", self.path, body_raw)
+        self._respond(code, {**headers, **_cors(self._origin())}, body)
 
     def do_OPTIONS(self):  # noqa: N802
-        self._respond(*handle_request("OPTIONS", self.path, None))
+        if self._refuse_origin():
+            return
+        # A preflight must echo the allowed origin; the shared _CORS has no origin, so it is
+        # merged here rather than widened to a wildcard.
+        code, _headers, body = handle_request("OPTIONS", self.path, None)
+        self._respond(code, _cors(self._origin()), body)
