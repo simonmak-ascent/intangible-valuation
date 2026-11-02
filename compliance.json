@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "default_branch": "main",
+  "merge": "pr-required",
+  "verify": [
+    "pnpm -r typecheck",
+    "pnpm -r test",
+    "pnpm -r build"
+  ],
+  "deploy": {
+    "kind": "workflow",
+    "workflow": "publish.yml"
+  },
+  "e2e": [
+    {
+      "probe": "https://intangible-valuation.ascent-partners.com/",
+      "expect": 200
+    }
+  ]
+}
