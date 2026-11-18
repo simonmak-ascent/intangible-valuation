@@ -28,7 +28,7 @@ All tools are deterministic calculators: read-only, no external data. Supply eve
 
 ## Docs
 
-- [Website](https://intangible-valuation.ascent-partners.com/): calculators and AI advisor
+- [Website](https://intangible-valuation.ascent-partners.com/): calculators
 - [Documentation](https://intangible-valuation.ascent-partners.com/docs): library reference
 - [MCP guide](https://intangible-valuation.ascent-partners.com/mcp): client configuration
 - [Agent skills](https://intangible-valuation.ascent-partners.com/skills)

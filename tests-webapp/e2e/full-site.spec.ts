@@ -237,7 +237,7 @@ test.describe("Full-site regression", () => {
 
   test("all links resolve (no 404/500)", async ({ request }) => {
     writeFileSync(LOG, `# Full-site regression — ${new Date().toISOString()}\nBASE=${BASE}\n`);
-    const roots = ["/", "/calculator", "/pricing", "/terms", "/privacy", "/mcp", "/skills", "/about", "/ai-advisor"];
+    const roots = ["/", "/calculator", "/pricing", "/terms", "/privacy", "/mcp", "/skills", "/about"];
     const seen = new Set<string>();
     const queue = [...roots, ...CATALOG.map((m) => `/calculator/${m.slug}`)];
     const broken: string[] = [];
