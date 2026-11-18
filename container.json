@@ -3,7 +3,7 @@
     {
       "name": "intangible-valuation",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:4b8c49b03d6e79b92186b2ca7b865708d3166a3bd100a48646a7dbb1421b0b8a",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:2188ec2d100b542a3a9529b429cf178a33516683a46e6b61124e734f407b8058",
       "port": 3121,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
@@ -21,7 +21,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "The node's own Next.js release (node server.js, not a standalone .next) copied into the image; uid 1001 is the deploy user the unit ran as. The app has no AUTH_SECRET anywhere \u2014 the unit's env file carries only PORT \u2014 so NextAuth logs MissingSecret on every request in production too; behaviour is identical between unit and container. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release. Lean rebuild 2026-10-27: one COPY --chown layer and no .next/cache, 517 MB -> 378 MB. Rolled out by digest through deploy-digest.yml."
+      "notes": "The node's own Next.js release (node server.js, not a standalone .next) copied into the image; uid 1001 is the deploy user the unit ran as. The app has no AUTH_SECRET anywhere \u2014 the unit's env file carries only PORT \u2014 so NextAuth logs MissingSecret on every request in production too; behaviour is identical between unit and container. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release. Lean rebuild 2026-10-27: one COPY --chown layer and no .next/cache, 517 MB -> 378 MB. Rollout path is a manual pull-by-digest swap on ecs-01/02/03: no caller workflow can exist while apg-infra is private."
     },
     {
       "name": "intangible-valuation-api",
