@@ -1,0 +1,117 @@
+name: deploy-digest
+
+# Rolls a pinned digest out to the app nodes with the estate's rollout implementation, which is
+# already installed on every node at /opt/container-deploy — the same script container-cd.yml runs.
+#
+# Why not a caller for apg-infra's container-cd.yml: apg-infra is private, and GitHub refuses a
+# cross-repository workflow_call into a private repository (.deploy/README.md records this).
+# Why not a vendored copy: the payload is on the nodes, and a second copy would be a second source
+# of truth for how a container is swapped.
+#
+# The digest must be the one container.json pins — the guard container-cd.yml applies — because a
+# rollout is by digest and a rollback returns to that digest.
+#
+# Two limits worth knowing before dispatching:
+#   * this job is pinned to main, because the guard validates the dispatched ref's container.json and
+#     rollout.sh then installs that file as the node's authoritative manifest;
+#   * it replaces containers on the one node it runs on (apg-ecs-01). The other two are not reached
+#     from here: `rollout.sh --peers` has been accepted-and-ignored since apg-infra #240 — the
+#     installed script is byte-identical to the pinned payload and never reads PEERS — and the fleet
+#     mechanism is the `:desired` tag, which is repo-scoped, so all three containers share it and
+#     moving it from the web image could pull the Python containers onto the Next.js image.
+#     Dispatch per node instead.
+
+on:
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: "Image digest (sha256:...) — must equal the one container.json pins"
+        required: true
+      containers:
+        description: >-
+          Container names from container.json, comma separated. Only the web container is
+          dispatchable today: -api and -mcp still pin an image older than the one running, and the
+          reconciler would hold that older image once the pin is written.
+        required: false
+        default: "intangible-valuation"
+      dry_run:
+        description: "Resolve and print the run command, change nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: [self-hosted, apg-ecs-01]
+    # One node, eight runner slots: two concurrent swaps of the same port-bound container leave the
+    # old one stopped behind a Created container holding the name.
+    concurrency:
+      group: deploy-digest-${{ inputs.containers }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate the digest against the declaration, and resolve runtime names
+        env:
+          DIGEST: ${{ inputs.digest }}
+          CONTAINERS: ${{ inputs.containers }}
+          WORKSPACE: ${{ github.workspace }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -eu
+          python3 - <<'PY'
+          import json, os, sys
+
+          digest = os.environ["DIGEST"].removeprefix("sha256:")
+          names = [n.strip() for n in os.environ["CONTAINERS"].split(",") if n.strip()]
+          if not names:
+              print("::error::no container named — nothing would be deployed")
+              sys.exit(1)
+
+          manifest = os.path.join(os.environ["WORKSPACE"], "container.json")
+          m = json.load(open(manifest))
+          items = {c["name"]: c for c in (m.get("containers") or [m])}
+
+          bad = 0
+          plan = []
+          for name in names:
+              spec = items.get(name)
+              if spec is None:
+                  print(f"::error::'{name}' is not in container.json (have: {', '.join(items)})")
+                  bad += 1
+                  continue
+              pinned = (spec.get("image") or "").split("@")[-1].removeprefix("sha256:")
+              if pinned != digest:
+                  print(f"::error::{name} pins {pinned[:19] or '(nothing)'} but you asked for {digest[:19]} — open a pull request that pins it, so the gate runs first")
+                  bad += 1
+                  continue
+              plan.append(f"{name} {spec.get('docker_name') or name}")
+          if bad:
+              sys.exit(1)
+
+          with open(os.path.join(os.environ["RUNNER_TEMP"], "deploy-plan"), "w") as fh:
+              fh.write("\n".join(plan) + "\n")
+          print("\n".join(plan))
+          PY
+
+      - name: Roll out
+        env:
+          DIGEST: ${{ inputs.digest }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          WORKSPACE: ${{ github.workspace }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -eu
+          while read -r name docker_name; do
+            args=(--container "$name" --digest "$DIGEST" --docker-name "$docker_name"
+                  --manifest "$WORKSPACE/container.json")
+            [ "${DRY_RUN:-false}" = "true" ] && args+=(--dry-run)
+            /opt/container-deploy/rollout.sh "${args[@]}"
+          done < "$RUNNER_TEMP/deploy-plan"
+
+      - name: The reconciler must agree with what was rolled out
+        if: ${{ !inputs.dry_run }}
+        run: /opt/container-deploy/converge-all.sh

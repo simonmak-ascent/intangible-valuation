@@ -2,6 +2,7 @@
   "containers": [
     {
       "name": "intangible-valuation",
+      "docker_name": "iv-web",
       "repo": "simonmak-ascent/intangible-valuation",
       "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:2188ec2d100b542a3a9529b429cf178a33516683a46e6b61124e734f407b8058",
       "port": 3121,
@@ -25,6 +26,7 @@
     },
     {
       "name": "intangible-valuation-api",
+      "docker_name": "iv-api",
       "repo": "simonmak-ascent/intangible-valuation",
       "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
       "port": 8061,
@@ -54,6 +56,7 @@
     },
     {
       "name": "intangible-valuation-mcp",
+      "docker_name": "iv-mcp",
       "repo": "simonmak-ascent/intangible-valuation",
       "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
       "port": 8060,
