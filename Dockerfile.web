@@ -34,8 +34,13 @@ COPY src ./src
 COPY mcp_server ./mcp_server
 COPY mkdocs.yml ./
 COPY docs ./docs
+COPY constraints-docs.txt ./
+# -c constraints-docs.txt pins the whole transitive set, not just the three top-level packages: the
+# packages that actually decide the rendered HTML (mkdocstrings-python, mkdocs-autorefs,
+# pymdown-extensions, Markdown) are transitive, so pinning only mkdocs/mkdocs-material/mkdocstrings
+# would leave the published reference free to change between two builds of the same commit.
 RUN pip install --quiet --upgrade pip \
- && pip install --quiet ".[docs]" \
+ && pip install --quiet -c constraints-docs.txt ".[docs]" \
  && mkdocs build --strict --site-dir /site
 
 FROM node:22-slim AS run
