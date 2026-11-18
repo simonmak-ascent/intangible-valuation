@@ -3,7 +3,10 @@ site_description: >-
   Python library for intangible asset valuation — patents, brands, goodwill,
   PPA, impairment testing. 124+ functions aligned to ASC 805, IFRS 3, ASC 350.
 site_author: Ascent Partners
-site_url: https://intangible-valuation.ascent-partners.com
+site_url: https://intangible-valuation.ascent-partners.com/docs/
+# Served from public/docs by the Next image, which resolves exact paths only: pretty
+# directory URLs would emit api/core/index.html and 404 under /docs/api/core/.
+use_directory_urls: false
 repo_url: https://github.com/simonmak-ascent/intangible-valuation
 repo_name: simonmak-ascent/intangible-valuation
 edit_uri: edit/main/docs/
@@ -45,9 +48,6 @@ extra_css:
   - assets/stylesheets/extra.css
 
 extra:
-  analytics:
-    provider: google
-    property: G-XXXXXXXXXX
   social:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ascent-partners-group-

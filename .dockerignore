@@ -29,3 +29,8 @@ db
 .env
 .env.*
 !.env.example
+
+# The library reference is built into the web image (Dockerfile.web, docs stage), so the docs
+# sources and their assets must survive the ignore list above — later rules win.
+!docs
+!docs/**
