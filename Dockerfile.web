@@ -22,6 +22,22 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
+# The library reference is generated from the same source as the library itself, so the docs a reader
+# gets describe the code that runs. mkdocstrings renders the docstrings, which the Next app cannot do —
+# and the MkDocs site was previously built in CI and published nowhere.
+FROM python:3.12-slim AS docs
+WORKDIR /src
+ENV PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+COPY mcp_server ./mcp_server
+COPY mkdocs.yml ./
+COPY docs ./docs
+RUN pip install --quiet --upgrade pip \
+ && pip install --quiet ".[docs]" \
+ && mkdocs build --strict --site-dir /site
+
 FROM node:22-slim AS run
 WORKDIR /app
 RUN useradd --uid 1001 --create-home app
@@ -34,6 +50,8 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=1001:1001 /app/.next/standalone ./
 COPY --from=build --chown=1001:1001 /app/.next/static ./.next/static
 COPY --from=build --chown=1001:1001 /app/public ./public
+# The library reference, built from the same commit (see the docs stage above), served as static files.
+COPY --from=docs --chown=1001:1001 /site ./public/docs
 USER 1001
 EXPOSE 3121
 CMD ["node", "server.js"]
