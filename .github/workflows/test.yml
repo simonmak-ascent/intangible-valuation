@@ -1,0 +1,34 @@
+name: test
+
+# Calls the vendored estate pipeline. The calling job MUST be named `test`: a reusable workflow's
+# check reports as `<caller-job> / <called-job>`, so this is what produces `test / unit`,
+# `test / probe` and `test / typecheck` — the names the fleet contract and any branch-protection
+# rule match on.
+#
+# This is additive while ci.yml and quality.yml still run: they carry the Python matrix, the 85%
+# coverage floor and the Playwright a11y/billing specs. Retiring them and moving their required
+# checks onto these names is a separate change, because branch protection has to move with them.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/estate-ci.yml
+    with:
+      # Single quotes: the value is interpolated inside a double-quoted shell word in the probe job,
+      # so inner double quotes would be destroyed before eval and `.[dev,mcp]` would become a glob.
+      install-cmd: pnpm install --frozen-lockfile && pip install -e '.[dev,mcp]'
+      test-cmd: pnpm test && pytest tests/ --cov=src -q
+      typecheck-cmd: pnpm typecheck && mypy src/
+      # PRs only. Both suites, because a Python-only change-set is invisible to vitest and would
+      # otherwise "pass without the fix" — the opposite of the truth.
+      probe-test-cmd: pnpm test && pytest tests/ -q
+      # A change-set that touches no test file (docs, workflows) is skipped, not failed.
+      allow-no-tests: true
