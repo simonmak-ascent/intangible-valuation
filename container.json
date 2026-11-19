@@ -4,7 +4,7 @@
       "name": "intangible-valuation",
       "docker_name": "iv-web",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:2188ec2d100b542a3a9529b429cf178a33516683a46e6b61124e734f407b8058",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:c277043b6fabf62dd94311e5fb56efbd497c017a199be6482c6a4a8c14a35234",
       "port": 3121,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
