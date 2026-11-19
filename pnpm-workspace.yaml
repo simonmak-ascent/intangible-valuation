@@ -25,8 +25,10 @@
 # with ERR_PNPM_IGNORED_BUILDS instead, and updating the pin becomes a reviewed change. Bumping a
 # dependency therefore means updating its entry here.
 #
-# (pnpm 11 renames this key to `allowBuilds` and flips `strictDepBuilds` to true. The repository pins
-# pnpm 10.30.3, so the current spelling is right; both facts belong with that bump.)
+# (pnpm 11 removes this key and replaces it with `allowBuilds` — see pnpm's migration guide. The
+# pinned 10.30.3 still honours `onlyBuiltDependencies`, so the current spelling is right; v11 also
+# flips `strictDepBuilds` to true. Both facts belong with that bump. Two reviewers disagreed on
+# whether `allowBuilds` first appeared in a 10.x release, so no version number is stated here.)
 #
 # Not a build-script matter, but the same class of "classification is not execution": @sentry/nextjs
 # sits in devDependencies in package.json while `instrumentation.ts` imports it statically, so

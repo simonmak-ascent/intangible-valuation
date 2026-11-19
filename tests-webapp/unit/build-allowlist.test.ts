@@ -75,7 +75,24 @@ describe("install-script allowlist", () => {
   it("sets strictDepBuilds, so an unlisted build is an error rather than a warning", () => {
     // pnpm 10 defaults this to false: it skips the build, warns, and exits 0, so the allowlist
     // would fail late — at `pnpm build` or in the container — instead of here. (pnpm 11 flips the
-    // default and renames `onlyBuiltDependencies` to `allowBuilds`; see package.json's pnpm pin.)
+    // default and retires `onlyBuiltDependencies`; see package.json's pnpm pin.)
     expect(WORKSPACE).toMatch(/^strictDepBuilds:\s*true\s*(?:#.*)?$/m);
+  });
+
+  it("keeps the image build safe while it ignores scripts", () => {
+    // Dockerfile.web's deps stage runs `pnpm install --ignore-scripts` and does not copy this file,
+    // so the image is built from a node_modules that no test run exercised. That is safe only while
+    // the two conditions in its comment hold: Next does not need esbuild, and Sentry's build plugin
+    // is not wired (so @sentry/cli's binary is not needed). Assert the second here; the first is
+    // what `pnpm build` in the build stage would catch loudly.
+    //
+    // This is a tripwire, not a gate: it reads one file for one identifier, and a wrapper re-exported
+    // without the name appearing (`export { default } from "./sentry.wrapped"`) would not trip it.
+    // It catches the ordinary wiring forms, which is what a future change would look like.
+    const nextConfig = readFileSync(join(ROOT, "next.config.ts"), "utf8");
+    expect(
+      nextConfig.includes("withSentryConfig"),
+      "next.config.ts wraps the config in withSentryConfig — Dockerfile.web's --ignore-scripts is no longer safe"
+    ).toBe(false);
   });
 });

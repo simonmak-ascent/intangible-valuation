@@ -2,7 +2,7 @@
   "name": "intangible-valuation-webapp",
   "version": "2.0.0",
   "private": true,
-  "description": "The most authoritative WebApp for intangible asset valuation — interactive calculators, MCP gateway, AI skills, and SurrealDB backend",
+  "description": "The most authoritative WebApp for intangible asset valuation — interactive calculators, MCP gateway, and AI skills",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,9 +13,6 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
-    "db:migrate": "tsx db/migrate.ts",
-    "db:rollback": "tsx db/migrate.ts --rollback",
-    "db:seed": "tsx lib/etl/import.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
@@ -24,8 +21,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^1.7.0",
-    "surrealdb": "^1.0.0",
-    "ulid": "^2.3.0",
     "zod": "^4.6.6"
   },
   "devDependencies": {
@@ -50,7 +45,6 @@
     "postcss": "^8.5.33",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.0.0",
-    "tsx": "^4.0.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.11"
   },

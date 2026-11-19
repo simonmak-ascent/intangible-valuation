@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { validateCitation, hasValidCitation, type Citation } from "@/lib/etl/citation";
+import { validateCitation, hasValidCitation, type CitationChain } from "@/lib/valuation/citation";
 
-const COMPLETE: Citation = {
+/**
+ * Renamed from `billing.test.ts`: the file was never about billing — it validates the citation
+ * chain, and the name outlived the billing code by a release. It now lives next to the module it
+ * tests, which moved out of `lib/etl/` when the importer it served was deleted.
+ */
+
+const COMPLETE: CitationChain = {
   source: "Damodaran Online — Cost of Capital by Industry",
   author: "Aswath Damodaran (NYU Stern)",
   date: "2025",

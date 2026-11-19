@@ -19,8 +19,13 @@ tests
 tests-webapp
 output
 design
-data
-db
+data/*
+# The published benchmark records are imported statically into the build, so exactly this one file has
+# to reach the build context. `data` alone would exclude it and Docker cannot re-include a file whose
+# parent directory is excluded — measured both ways: with `data`, `COPY data/benchmarks.json` fails
+# with "excluded by .dockerignore".
+!data/benchmarks.json
+.npmrc
 *.png
 *.jpg
 *.jpeg
