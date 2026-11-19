@@ -53,11 +53,20 @@ class DiscountRateInputs(BaseModel):
     discount_rate: float | None = None
 
     @field_validator(
-        "risk_free_rate", "equity_risk_premium", "market_return",
-        "beta", "size_premium", "industry_risk_premium",
-        "specific_risk_premium", "cost_of_equity", "cost_of_debt",
-        "tax_rate", "currency_risk_premium", "country_risk_premium",
-        "volatility", "discount_rate",
+        "risk_free_rate",
+        "equity_risk_premium",
+        "market_return",
+        "beta",
+        "size_premium",
+        "industry_risk_premium",
+        "specific_risk_premium",
+        "cost_of_equity",
+        "cost_of_debt",
+        "tax_rate",
+        "currency_risk_premium",
+        "country_risk_premium",
+        "volatility",
+        "discount_rate",
     )
     @classmethod
     def validate_rate(cls, v: float | None) -> float | None:
@@ -509,7 +518,15 @@ def dlom_finnerty(
         n_d2 = _norm_cdf(-d2)
 
         exp_rt = exp(r * t)
-        dlom = (1 / (r * t)) * (r * t * n_d2 - (exp_rt - 1) * n_d1)
+        # Same tolerance `tax_amortization_benefit` uses: at a rate this close to zero the closed form
+        # divides by a vanishing r*t and loses the (exp(r*t) - 1) term to cancellation.
+        if math.isclose(r, 0.0, abs_tol=1e-12):
+            # The limit as r -> 0 is finite, and a zero risk-free rate is a legitimate input, so it is
+            # evaluated directly rather than allowed to raise ZeroDivisionError.
+            # limit = N(-d2) - N(-d1) = 2*Phi(sigma*sqrt(t)/2) - 1
+            dlom = 2.0 * _norm_cdf(sigma * sqrt(t) / 2.0) - 1.0
+        else:
+            dlom = (1 / (r * t)) * (r * t * n_d2 - (exp_rt - 1) * n_d1)
         dlom = max(0.0, min(1.0, dlom))
 
     except (OverflowError, ValueError) as e:
@@ -815,10 +832,7 @@ def build_up_with_country_risk(
             f"Industry Risk Premium = {irp:.2%}",
             f"Specific Risk Premium = {srp:.2%}",
             f"Country Risk Premium = {crp:.2%}",
-            (
-                f"Discount Rate = {rf:.2%} + {equity_rp:.2%} + {sp:.2%}"
-                f" + {irp:.2%} + {srp:.2%} + {crp:.2%} = {rate:.2%}"
-            ),
+            (f"Discount Rate = {rf:.2%} + {equity_rp:.2%} + {sp:.2%} + {irp:.2%} + {srp:.2%} + {crp:.2%} = {rate:.2%}"),
         ],
         assumptions=[
             "Risk-free rate reflects long-term government bond yield",
