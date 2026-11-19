@@ -1,40 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSurrealClient } from "@/lib/surreal/client";
-import type { BusinessStage } from "@/lib/valuation/types";
-import type { Benchmark } from "@/lib/valuation/types";
+import { filterBenchmarks } from "@/lib/valuation/benchmarks";
 
-export async function GET(request: NextRequest) {
+/**
+ * The published benchmark records.
+ *
+ * This used to query SurrealDB, and the query was built by interpolating four request parameters into
+ * SurrealQL with a client that connects as root. It was unreachable only because the web container
+ * carried no `SURREALDB_*`; the route is now a filter over a committed, citation-validated file, so
+ * there is no query to inject into and nothing to be unavailable.
+ *
+ * A parameter is passed through as a plain string and compared, never concatenated, so the payload
+ * that used to be interesting — `?category=" OR 1=1 --` — simply matches no record.
+ */
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const category = searchParams.get("category") || undefined;
-  const businessStage = searchParams.get("business_stage") as BusinessStage | undefined;
-  const assetType = searchParams.get("asset_type") || undefined;
-  const industry = searchParams.get("industry") || undefined;
+  const benchmarks = filterBenchmarks({
+    // `||`, not `??`: an empty string is what a client-side "All" option sends, and the parameter has
+    // always meant "do not filter on this field" when it is empty. `??` would let `""` through and
+    // filter every record out.
+    category: searchParams.get("category") || undefined,
+    business_stage: searchParams.get("business_stage") || undefined,
+    asset_type: searchParams.get("asset_type") || undefined,
+    industry: searchParams.get("industry") || undefined,
+  });
 
-  try {
-    const db = await getSurrealClient();
-    const conditions: string[] = [];
-    if (category) conditions.push(`category = "${category}"`);
-    if (businessStage) conditions.push(`business_stage = "${businessStage}"`);
-    if (assetType) conditions.push(`(asset_type = "${assetType}" OR asset_type = "all")`);
-    if (industry) conditions.push(`(industry = "${industry}" OR industry = "all")`);
-
-    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
-    const [benchmarks] = await db.query<[Benchmark[]]>(
-      `SELECT * FROM benchmarks${whereClause} ORDER BY category, business_stage, asset_type`
-    );
-
-    return NextResponse.json({
-      benchmarks: benchmarks ?? [],
-      count: benchmarks?.length ?? 0,
-    });
-  } catch {
-    // DB unavailable. There is no honest fallback: the values used to be served under invented
-    // sources ("Damodaran 2025 (fallback)"), which is a citation that exists in no file. An empty
-    // list is the truthful answer until the data is reachable.
-    // An empty 200 is indistinguishable from "the table is empty", and a cache will persist it.
-    return NextResponse.json(
-      { error: "BENCHMARKS_UNAVAILABLE", message: "Benchmark store is unreachable" },
-      { status: 503 }
-    );
-  }
+  return NextResponse.json({ benchmarks, count: benchmarks.length });
 }

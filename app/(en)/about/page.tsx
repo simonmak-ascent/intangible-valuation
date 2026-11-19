@@ -40,8 +40,9 @@ export default function AboutPage() {
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400">
           Open-source Python library published on PyPI. Next.js WebApp running on Ascent Partners Group
-          infrastructure. SurrealDB for published benchmark reference data. Model Context Protocol (MCP)
-          server for AI agent integration. 14 tools available for LLM-powered valuation workflows.
+          infrastructure. Published benchmark records are a cited data file in the repository, not a
+          database. Model Context Protocol (MCP) server for AI agent integration. 14 tools available
+          for LLM-powered valuation workflows.
         </p>
 
         <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mt-10 mb-4">

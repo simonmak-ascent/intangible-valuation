@@ -1,3 +1,5 @@
+import type { CitationChain } from "./citation";
+
 export interface ValuationResult {
   value: number;
   method: string;
@@ -80,10 +82,12 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface Benchmark {
-  id: string;
+export interface BenchmarkRecord {
   category: "royalty_rate" | "discount_rate" | "useful_life" | "growth_rate";
-  business_stage: BusinessStage;
+  // "all" is real: three records are not stage-specific and the value is returned verbatim. It is not
+  // a wildcard here — `business_stage` is matched exactly, as the SQL did — so a stage filter excludes
+  // those three. Only `asset_type` and `industry` treat "all" as "applies to every value".
+  business_stage: BusinessStage | "all";
   asset_type: string;
   industry: string;
   metric_name: string;
@@ -91,16 +95,16 @@ export interface Benchmark {
   unit?: string;
   p25?: number;
   p75?: number;
-  source: string;
-  source_url?: string;
+  /** Every record carries its own chain; the file is the source of truth, so it is returned verbatim. */
+  citation: CitationChain;
 }
 
-export interface StageDefaults {
-  businessStage: BusinessStage;
-  discountRate: { median: number; low: number; high: number };
-  royaltyRate: { median: number; low: number; high: number };
-  usefulLife: { median: number; low: number; high: number };
-  growthRate: { median: number; low: number; high: number };
+/** Query parameters `GET /v1/benchmarks` accepts. Absent or empty means "do not filter on this field". */
+export interface BenchmarkFilter {
+  category?: string;
+  business_stage?: string;
+  asset_type?: string;
+  industry?: string;
 }
 
 export interface SkillDefinition {

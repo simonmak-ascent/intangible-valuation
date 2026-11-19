@@ -11,7 +11,7 @@ export default defineConfig({
     include: ["tests-webapp/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
-      include: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "db/**/*.{ts,tsx}"],
+      include: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
       exclude: ["app/layout.tsx", "lib/utils/cn.ts", "**/*.d.ts"],
       thresholds: {
         lines: 80,
