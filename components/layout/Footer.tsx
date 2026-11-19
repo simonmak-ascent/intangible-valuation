@@ -52,7 +52,7 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Ascent Partners. All valuation methods trace to the Intangible Asset Valuation textbook.
           </p>
           <p className="text-xs text-neutral-400">
-            68 methods &middot; 1,000+ tests &middot; 49 MCP tools &middot; Open source
+            68 methods &middot; 1,000+ tests &middot; 14 MCP tools &middot; Open source
           </p>
         </div>
       </div>

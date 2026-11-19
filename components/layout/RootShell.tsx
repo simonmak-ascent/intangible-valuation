@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Open_Sans, Titillium_Web, Raleway, JetBrains_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
 import { AppShell } from "@/components/layout/AppShell";
 import "@/app/globals.css";
 
@@ -43,7 +42,6 @@ export function RootShell({ lang, children }: { lang: string; children: React.Re
       <body className="flex min-h-screen flex-col">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <AppShell>{children}</AppShell>
-        <Analytics />
       </body>
     </html>
   );

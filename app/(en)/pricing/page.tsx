@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { trackEvent } from "@/lib/analytics";
 
 const TIERS = [
   {
@@ -39,7 +38,6 @@ export default function PricingPage() {
 
   const handleSubscribe = async (planId: string) => {
     setLoading(true);
-    trackEvent("checkout_started", { plan_id: planId });
     try {
       const res = await fetch("/v1/billing/checkout", {
         method: "POST",

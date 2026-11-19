@@ -1,32 +1,6 @@
 import { auth } from "@/lib/auth/config";
 import { NextResponse } from "next/server";
 
-const publicPaths = [
-  "/",
-  "/zh",
-  "/hk",
-  "/about",
-  "/api",
-  "/calculator",
-  "/docs",
-  "/mcp",
-  "/skills",
-  "/pricing",
-  "/terms",
-  "/privacy",
-  "/sign-in",
-  "/sign-up",
-  "/v1/valuation",
-  "/v1/benchmarks",
-  "/v1/billing/webhook",
-  "/v1/auth",
-  "/favicon.ico",
-];
-
-function isPublic(pathname: string): boolean {
-  return publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
-}
-
 function isAdminPath(pathname: string): boolean {
   return pathname.startsWith("/admin");
 }
@@ -37,10 +11,6 @@ function isDashboardPath(pathname: string): boolean {
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-
-  if (isPublic(pathname) || pathname.startsWith("/_next") || pathname.includes(".")) {
-    return NextResponse.next();
-  }
 
   const session = req.auth;
   const role = (session?.user as { role?: string } | undefined)?.role ?? "public";
@@ -62,10 +32,10 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  if (!session) {
-    return NextResponse.redirect(new URL(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, req.url));
-  }
-
+  // Everything else — a public page, a static asset, or a path with no route — falls through, and the
+  // router answers 404 rather than redirecting a dead URL to sign-in and telling a crawler it moved.
+  // Do not add an early `return` above the guards: `/admin` and `/dashboard` are the only surfaces this
+  // file protects, and a path ending in `.ext` is still a path they must see.
   return NextResponse.next();
 });
 

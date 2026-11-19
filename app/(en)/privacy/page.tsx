@@ -50,8 +50,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-serif text-lg font-semibold text-neutral-900 dark:text-white mb-2">5. Cookies & Analytics</h2>
           <p>
-            We use Vercel Analytics and Sentry for aggregate usage and error monitoring. These are privacy-conscious and
-            do not track you across unrelated sites.
+            We use Sentry for error monitoring. It is privacy-conscious and
+            does not track you across unrelated sites.
           </p>
         </section>
 

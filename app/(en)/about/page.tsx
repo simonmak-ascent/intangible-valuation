@@ -41,7 +41,7 @@ export default function AboutPage() {
         <p className="text-neutral-600 dark:text-neutral-400">
           Open-source Python library published on PyPI. Next.js WebApp deployed on Vercel.
           SurrealDB 3.x for persistent data and audit trails. Model Context Protocol (MCP) server
-          for AI agent integration. 49 tools available for LLM-powered valuation workflows.
+          for AI agent integration. 14 tools available for LLM-powered valuation workflows.
         </p>
 
         <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mt-10 mb-4">
