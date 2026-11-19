@@ -61,7 +61,8 @@
   "pnpm": {
     "overrides": {
       "postcss": "8.5.33",
-      "vite": "7.3.7"
+      "vite": "7.3.7",
+      "rollup@3": "3.30.0"
     }
   }
 }

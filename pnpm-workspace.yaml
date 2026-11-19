@@ -1,1 +1,44 @@
-dangerouslyAllowAllBuilds: true
+# Dependency build scripts run only for the packages listed here.
+#
+# This replaces `dangerouslyAllowAllBuilds: true`, which permitted every dependency's
+# preinstall/install/postinstall — transitive ones included — to execute unapproved on every
+# `pnpm install`. That matters because the runners are self-hosted: `apg-ci-04` is the control node,
+# and a compromised transitive package would have had code execution as the runner user for every
+# job in every repository on it. `pnpm audit`, which this repository now gates on, cannot see this
+# class at all: it matches published advisories, it does not inspect install scripts.
+#
+# The three below are the complete set of *dependencies* in this tree that declare an install-phase
+# script. Measured by walking installed packages, not by walking every package.json: a first attempt
+# did the latter and picked up `ljharb-monorepo-symlink-test`, which is a test fixture *inside the
+# `resolve` tarball* and not a package pnpm installs, so it could never have run and must not be
+# pre-approved. `tests-webapp/unit/build-allowlist.test.ts` now fails if a name here is not in the
+# lockfile, which is the check that would have caught it.
+#
+#   @sentry/cli   postinstall  node ./scripts/install.js   (transitive: bundler-plugin-core)
+#   esbuild       postinstall  node install.js             (the platform binary; the build needs it)
+#   unrs-resolver postinstall  node postinstall.js
+#
+# Name-level grants would not be enough. `--frozen-lockfile` guarantees a version change arrives as
+# a lockfile diff, but CI runs `pnpm install` on the pull request's own bytes on the self-hosted
+# control node, so a compromised new release of an allowed name would reach its postinstall before
+# anyone reads that diff. Scoping each grant to the version reviewed makes such a bump fail closed
+# with ERR_PNPM_IGNORED_BUILDS instead, and updating the pin becomes a reviewed change. Bumping a
+# dependency therefore means updating its entry here.
+#
+# (pnpm 11 renames this key to `allowBuilds` and flips `strictDepBuilds` to true. The repository pins
+# pnpm 10.30.3, so the current spelling is right; both facts belong with that bump.)
+#
+# Not a build-script matter, but the same class of "classification is not execution": @sentry/nextjs
+# sits in devDependencies in package.json while `instrumentation.ts` imports it statically, so
+# @sentry/node and its @opentelemetry/* transitives do load in the container. They are inert only
+# because `Sentry.init` is gated on SENTRY_DSN, which nothing sets.
+onlyBuiltDependencies:
+  - "@sentry/cli@2.39.1"
+  - "esbuild@0.28.2"
+  - "unrs-resolver@1.12.2"
+
+# Without this, pnpm 10 skips an unlisted package's build, prints a warning and exits 0 — so the
+# allowlist would fail late, at `pnpm build` or in the container, instead of here. (pnpm 11 flips
+# this default; it is pinned at 10.30.3.) With it, the PR that adds a dependency needing a build is
+# the PR that has to add the entry.
+strictDepBuilds: true

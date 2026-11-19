@@ -22,6 +22,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The check that would have caught GHSA-mw96-cpmx-2vgc before it sat on the default branch for
+      # a release cycle. `--audit-level=high` fails only on high or critical, so the dev-scope
+      # moderates do not block a merge: most need a Sentry major, but two @vitest/mocker advisories
+      # clear at 4.1.12 (inside the declared ^4.1.11) and the minimatch ones are patched at 11.0.1.
+      # Do not add `continue-on-error` here to quiet it — that is how the high advisory survived.
+      # It needs registry egress; a network failure fails the job rather than passing silently.
+      - name: Audit for high or critical vulnerabilities
+        run: pnpm audit --audit-level=high
+
       - name: Type-check
         run: pnpm run typecheck
 
