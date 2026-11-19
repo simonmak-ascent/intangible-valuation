@@ -1,64 +1,53 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import { Check } from "lucide-react";
 
+// Static copy. This page used to be a client component whose Subscribe button POSTed to
+// `/v1/billing/checkout`, took the Stripe Checkout URL the route returned and sent the browser there,
+// with `/dashboard?checkout=success` as the return address — three things that no longer exist. Auth
+// and billing left the design on 2026-11-18 and were deleted
+// on 2026-11-19, so the prices below describe what is planned, not something
+// that can be bought. Only the free tier is actionable — it links to the calculator, which is free
+// and needs no account; Pro and Enterprise render a disabled label.
 const TIERS = [
   {
-    id: "plans:free",
+    id: "free",
     name: "Free",
     price: "$0",
-    description: "For trying the platform",
-    features: ["All 68 valuation methods", "Step-by-step proofs", "5 saved valuations"],
-    cta: "Current plan",
+    description: "The calculator, with no account",
+    features: ["All 68 valuation methods", "Step-by-step proofs", "Every step of the working is shown"],
+    cta: "Open the calculator",
+    href: "/calculator",
     highlight: false,
   },
   {
-    id: "plans:pro",
+    id: "pro",
     name: "Pro",
     price: "$29/mo",
     description: "For practitioners and auditors",
-    features: ["Everything in Free", "Unlimited saved valuations", "Audit trail", "PDF export", "Benchmark data"],
-    cta: "Subscribe",
+    features: ["Everything in Free", "Saved valuations", "Audit trail", "PDF export", "Benchmark data"],
+    cta: "Not yet available",
+    href: null,
     highlight: true,
   },
   {
-    id: "plans:enterprise",
+    id: "enterprise",
     name: "Enterprise",
     price: "Custom",
     description: "For firms and multi-user teams",
     features: ["Everything in Pro", "SSO & team roles", "Priority support"],
-    cta: "Contact sales",
+    cta: "Not yet available",
+    href: null,
     highlight: false,
   },
 ];
 
 export default function PricingPage() {
-  const [loading, setLoading] = useState(false);
-
-  const handleSubscribe = async (planId: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch("/v1/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan_id: planId }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="container-page py-12">
       <div className="max-w-2xl mx-auto text-center mb-12">
         <h1 className="text-display-sm text-primary-500 mb-4">Pricing</h1>
         <p className="text-neutral-500">
-          Start free. Upgrade when you need the audit trail, PDF export, and benchmark data.
+          The calculator is free and needs no account. Team plans are not available yet.
         </p>
       </div>
 
@@ -79,17 +68,21 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <button
-              onClick={() => handleSubscribe(tier.id)}
-              disabled={loading || tier.id === "plans:free" || tier.id === "plans:enterprise"}
-              className={`w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
-                tier.highlight
-                  ? "bg-primary-500 text-white hover:bg-primary-600"
-                  : "border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {loading ? "Redirecting…" : tier.cta}
-            </button>
+            {tier.href ? (
+              <Link
+                href={tier.href}
+                className="w-full text-center rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors bg-primary-500 text-white hover:bg-primary-600"
+              >
+                {tier.cta}
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="w-full text-center rounded-lg px-4 py-2.5 text-sm font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 cursor-not-allowed"
+              >
+                {tier.cta}
+              </span>
+            )}
           </div>
         ))}
       </div>

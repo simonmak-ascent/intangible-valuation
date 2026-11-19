@@ -41,25 +41,4 @@ export async function calculateValuation(
   });
 }
 
-export async function getDashboardValuations(params?: {
-  page?: number;
-  limit?: number;
-  method?: string;
-  category?: string;
-  sort?: string;
-  order?: "asc" | "desc";
-}) {
-  const searchParams = new URLSearchParams();
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) searchParams.set(key, String(value));
-    });
-  }
-  return apiFetch<unknown>(`/v1/dashboard/valuations?${searchParams.toString()}`);
-}
-
-export async function getDashboardValuationDetail(id: string) {
-  return apiFetch<unknown>(`/v1/dashboard/valuations/${id}`);
-}
-
 export { API_BASE };

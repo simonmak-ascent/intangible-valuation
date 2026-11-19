@@ -59,7 +59,6 @@ export interface ValuationRequest {
 
 export interface ValuationResponse {
   result: ValuationResult;
-  saved?: { id: string } | null;
   error?: string;
 }
 
@@ -79,27 +78,6 @@ export interface PaginatedResponse<T> {
     total: number;
     pages: number;
   };
-}
-
-export interface SavedValuation {
-  id: string;
-  method: string;
-  name?: string;
-  category: string;
-  asset_type?: string;
-  business_stage?: string;
-  result_value: number;
-  created_at: string;
-  is_favorite: boolean;
-}
-
-export interface SavedValuationDetail extends SavedValuation {
-  inputs: Record<string, unknown>;
-  formula_reference: string;
-  steps: string[];
-  assumptions: string[];
-  pv_before_tab?: number;
-  tab_factor?: number;
 }
 
 export interface Benchmark {
@@ -123,15 +101,6 @@ export interface StageDefaults {
   royaltyRate: { median: number; low: number; high: number };
   usefulLife: { median: number; low: number; high: number };
   growthRate: { median: number; low: number; high: number };
-}
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  name?: string;
-  role: "public" | "auditor" | "admin";
-  subscriptionTier: "free" | "pro" | "enterprise";
-  organization?: string;
 }
 
 export interface SkillDefinition {
