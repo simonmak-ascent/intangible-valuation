@@ -1,0 +1,221 @@
+# The estate's test pipeline. VENDORED into this repository on 2026-11-19.
+#
+# The estate's rule is that a repository calls this workflow and never copies it — but a
+# cross-repository `uses:` can only reach a repository that is public, and `apg-infra` is private.
+# Vendoring is the fallback `.deploy/README.md` already documents for exactly this case. Four changes
+# from the original: two forced by the copy, two by this repository's own stack.
+#   * `runs-on: ubuntu-latest` -> `[self-hosted, apg-ci-04]`, because this account has no hosted
+#     minutes (standards.md: CI runs inside the estate).
+#   * the probe job runs `scripts/probe.sh` from this repository instead of checking out apg-infra at
+#     `job.workflow_sha`, which for a local copy would be this repository's commit, not that one.
+#   * an `allow-no-tests` input, forwarded to `scripts/probe.sh --allow-no-tests`, so a change-set
+#     with no test file (docs, workflows) is skipped instead of failing the mandatory probe job.
+#   * `actions/setup-python` in the `typecheck` job, because this repository's typecheck-cmd is
+#     `mypy` and its install-cmd runs `pip`. The `coverage`, `integration` and `e2e` jobs still have
+#     no Python setup: they skip today because the caller passes no command for them.
+# Source: apg-infra@de03354b312af71cc58f22f713bfa667fcd4b131 — the commit that last touched both
+# .github/workflows/estate-ci.yml and scripts/probe.sh (2026-11-17), which is the pin apg-infra's own
+# AGENTS.md defines. The bytes are unchanged through 48dd8bad; if the estate's payload changes,
+# re-vendor and bump this line.
+#
+# CHECK NAMING — the rule the whole contract depends on: a reusable workflow's job reports as
+# `<caller-job> / <called-job>`. So a caller MUST name its job `test`:
+#
+#   jobs:
+#     test:
+#       uses: simonmak-ascent/apg-infra/.github/workflows/estate-ci.yml@<40-hex sha>
+#
+# which makes the required checks `test / unit`, `test / probe`, `test / typecheck`,
+# `test / integration`, `test / e2e`, `test / coverage`. A caller that names its job anything else
+# produces `estate / unit`, which no branch-protection rule and no conformance audit will match.
+#
+# THE PIN is the invariant from container-cd.yml: when this file or scripts/probe.sh changes, the
+# commit carrying the change is the new pin. For a vendored copy that pin is a line in this file
+# (see "Source" below), compared when the copy is refreshed — there is no cross-repository `uses:`
+# to update, because the callable repository is private.
+#
+# Mandatory jobs: unit, probe. Everything else is skipped unless the caller passes its command, and
+# a skipped job produces no check — so a caller only requires the checks it actually runs.
+name: Estate CI
+
+on:
+  workflow_call:
+    inputs:
+      test-cmd:
+        description: Command that runs the unit tests
+        required: true
+        type: string
+      install-cmd:
+        description: Command that installs dependencies (also run inside the probe worktree)
+        required: false
+        default: ""
+        type: string
+      typecheck-cmd:
+        description: Type-check command (empty for repos without a typed layer)
+        required: false
+        default: ""
+        type: string
+      probe-test-cmd:
+        description: Command that runs the changed tests inside the probe worktree
+        required: false
+        default: ""
+        type: string
+      allow-no-tests:
+        # Adaptation 3 (not in upstream): passed to probe.sh so a change-set that touches no test
+        # file — a docs change, or a workflow change like this one — reports "skipped" rather than
+        # failing the mandatory job with exit 2.
+        description: Treat a change-set with no test file as skipped rather than failed
+        required: false
+        default: false
+        type: boolean
+      coverage-cmd:
+        description: Changed-file coverage command (empty to skip)
+        required: false
+        default: ""
+        type: string
+      integration-cmd:
+        description: Integration suite (empty to skip)
+        required: false
+        default: ""
+        type: string
+      e2e-cmd:
+        description: Browser suite (empty to skip)
+        required: false
+        default: ""
+        type: string
+      node-version:
+        required: false
+        default: "22"
+        type: string
+      python-version:
+        required: false
+        default: "3.12"
+        type: string
+
+jobs:
+  typecheck:
+    if: inputs.typecheck-cmd != ''
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      # Adaptation 4: upstream's typecheck job had no Python setup, but this repository's
+      # typecheck-cmd runs mypy and its install-cmd runs pip.
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml', 'requirements.txt', 'setup.py') != ''
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: install dependencies, failing fast when the lockfile does not match
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - run: ${{ inputs.typecheck-cmd }}
+
+  unit:
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml', 'requirements.txt', 'setup.py') != ''
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: install
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - run: ${{ inputs.test-cmd }}
+
+  coverage:
+    if: inputs.coverage-cmd != ''
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: install
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - run: ${{ inputs.coverage-cmd }}
+
+  probe:
+    # Pull requests only: on a push there is no base to compare against, so the change-set is empty
+    # and the probe could only report "could not run".
+    if: inputs.probe-test-cmd != '' && github.event_name == 'pull_request'
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml', 'requirements.txt', 'setup.py') != ''
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: install in the workspace
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - name: probe — the change-set's tests must fail without the fix
+        # Vendored: apg-infra is private, so `uses:` cannot reach it and the original step's
+        # `job.workflow_sha` checkout of that repo would not resolve. scripts/probe.sh is the
+        # estate's own copy, taken from the commit this workflow was vendored from.
+        env:
+          ALLOW_NO_TESTS: ${{ inputs.allow-no-tests }}
+        run: |
+          args=(--repo "$GITHUB_WORKSPACE"
+                --base "${{ github.event.pull_request.base.sha }}"
+                --install-cmd "${{ inputs.install-cmd }}"
+                --test-cmd "${{ inputs.probe-test-cmd }}")
+          [ "$ALLOW_NO_TESTS" = "true" ] && args+=(--allow-no-tests)
+          bash scripts/probe.sh "${args[@]}"
+
+  integration:
+    if: inputs.integration-cmd != ''
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: install
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - run: ${{ inputs.integration-cmd }}
+
+  e2e:
+    if: inputs.e2e-cmd != ''
+    runs-on: [self-hosted, apg-ci-04]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: install
+        if: inputs.install-cmd != ''
+        run: ${{ inputs.install-cmd }}
+      - run: npx playwright install --with-deps
+      - run: ${{ inputs.e2e-cmd }}
