@@ -3,6 +3,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getSurrealClient, closeSurrealClient } from "@/lib/surreal/client";
 import { assertSchemaNoReservedWords } from "@/lib/db/reserved-words";
+import { splitStatements } from "@/lib/db/statements";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_DIR = join(__dirname, "schema");
@@ -38,10 +39,7 @@ function getMigrationFiles(direction: "up" | "down" = "up"): MigrationFile[] {
 async function applyMigration(db: ReturnType<typeof getSurrealClient> extends Promise<infer T> ? T : never, file: MigrationFile): Promise<void> {
   const sql = readFileSync(file.path, "utf-8");
   assertSchemaNoReservedWords(sql, file.name);
-  const statements = sql
-    .split(";")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !s.startsWith("--"));
+  const statements = splitStatements(sql);
 
   for (const statement of statements) {
     try {

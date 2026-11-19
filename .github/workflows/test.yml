@@ -6,7 +6,7 @@ name: test
 # rule match on.
 #
 # This is additive while ci.yml and quality.yml still run: they carry the Python matrix, the 85%
-# coverage floor and the Playwright a11y/billing specs. Retiring them and moving their required
+# coverage floor and the Playwright a11y/compliance specs. Retiring them and moving their required
 # checks onto these names is a separate change, because branch protection has to move with them.
 
 on:

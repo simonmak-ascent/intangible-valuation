@@ -11,7 +11,7 @@ export default function TermsPage() {
     <div className="container-narrow py-12">
       <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Terms of Service" }]} />
       <h1 className="text-display-sm text-primary-500 mt-6 mb-6">Terms of Service</h1>
-      <p className="text-sm text-neutral-400 mb-8">Last updated: 2026-08-13</p>
+      <p className="text-sm text-neutral-400 mb-8">Last updated: 2026-11-19</p>
 
       <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6 text-sm text-neutral-600 dark:text-neutral-400">
         <section>
@@ -41,11 +41,11 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="font-serif text-lg font-semibold text-neutral-900 dark:text-white">4. Subscriptions & Billing</h2>
+          <h2 className="font-serif text-lg font-semibold text-neutral-900 dark:text-white">4. No Accounts, No Payment</h2>
           <p>
-            Paid plans are billed monthly through Stripe. You may cancel at any time via the billing portal; cancellation
-            takes effect at the end of the current billing period. All payments are processed by Stripe; we never store
-            your card details.
+            The service has no user accounts and takes no payment. There is no subscription, no self-service billing
+            management and no card processing, so nothing in these terms creates a payment obligation. If paid plans are
+            offered later, these terms will be replaced before any payment is taken.
           </p>
         </section>
 
