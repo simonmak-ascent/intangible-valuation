@@ -29,7 +29,10 @@ test.describe("Calculator", () => {
     await expect(page.locator("text=Calculate")).toBeVisible();
   });
 
-  test("submits present value calculation", async ({ page }) => {
+  test("computes a present value through the Python engine", async ({ page }) => {
+    // /api/* is the Python container behind the ALB; `next dev` serves no such route, so this can only
+    // pass against a deployed origin (PLAYWRIGHT_BASE_URL). Skipping is honest; asserting here was not.
+    test.skip(!process.env.PLAYWRIGHT_BASE_URL, "needs a deployed origin — next dev has no /api/*");
     await page.goto("/calculator/present-value");
 
     await page.fill('input[placeholder*="Future value"]', "100000");
@@ -38,8 +41,9 @@ test.describe("Calculator", () => {
 
     await page.click('button[type="submit"]');
 
-    // Should see a result (value or error — depends on API availability)
-    await page.waitForSelector("text=/\\$\\d|error|Calculating/i", { timeout: 10000 });
+    // 100000 / 1.1^5 = 62092.13. The previous assertion accepted "error" as a pass, which is how a
+    // 404 HTML page rendered into the result card shipped and stayed green.
+    await expect(page.getByText("$62,092.13")).toBeVisible({ timeout: 15000 });
   });
 });
 
