@@ -5,7 +5,7 @@ Imports the intangible_valuation Python package (must be in requirements.txt).
 Falls back to hardcoded methods when package is not installed.
 """
 
-import json, math
+import inspect, json, logging, math, uuid
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
@@ -455,6 +455,33 @@ def resolve_method(path: str, headers: dict, body: object | None = None) -> str 
     return _normalize_slug(path_part)
 
 
+def calculate_response(func: callable, body: dict) -> tuple[int, dict]:
+    """Run one calculation and return ``(status, body)``.
+
+    Separated from the handler so the error contract can be tested without a socket. Binding is
+    validated before the call: a ``TypeError`` raised *inside* a calculation must not reach the caller
+    as an error message, and the old handler could only tell the two apart by catching the exception —
+    which leaked pydantic ``ValidationError`` text and Python ``TypeError`` strings.
+    """
+    kwargs = {k: v for k, v in body.items() if k != "method"}
+
+    signature = inspect.signature(func)
+    try:
+        signature.bind(**kwargs)
+    except TypeError:
+        expected = list(signature.parameters)
+        return 400, {"error": "Invalid parameters", "expected_params": expected}
+
+    try:
+        return 200, _to_plain(func(**kwargs))
+    except Exception:
+        # The caller gets a stable message and a correlation id. The detail names internal classes and
+        # request shapes, so it goes to the log, never into the response.
+        ref = uuid.uuid4().hex[:12]
+        logging.getLogger("intangible_valuation.api").exception("calculation failed ref=%s", ref)
+        return 400, {"error": "Calculation failed", "reference": ref}
+
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
@@ -490,20 +517,8 @@ class handler(BaseHTTPRequestHandler):
             )
             return
 
-        kwargs = {k: v for k, v in body.items() if k != "method"}
-        try:
-            result = func(**kwargs)
-            self._send(200, _to_plain(result))
-        except TypeError as e:
-            self._send(
-                400,
-                {
-                    "error": f"Invalid parameters: {e}",
-                    "expected_params": list(func.__code__.co_varnames[: func.__code__.co_argcount]),
-                },
-            )
-        except Exception as e:
-            self._send(400, {"error": str(e)})
+        code, response = calculate_response(func, body)
+        self._send(code, response)
 
     def do_GET(self):
         method = resolve_method(self.path, self.headers, None)
