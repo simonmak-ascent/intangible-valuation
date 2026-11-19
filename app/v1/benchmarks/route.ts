@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSurrealClient } from "@/lib/surreal/client";
-import { getFallbackDefaults } from "@/lib/valuation/defaults";
 import type { BusinessStage } from "@/lib/valuation/types";
 import type { Benchmark } from "@/lib/valuation/types";
 
@@ -29,34 +28,13 @@ export async function GET(request: NextRequest) {
       count: benchmarks?.length ?? 0,
     });
   } catch {
-    // DB unavailable — return fallback for common queries
-    if (businessStage && (businessStage === "startup" || businessStage === "growth" || businessStage === "mature")) {
-      const defaults = getFallbackDefaults(businessStage);
-      return NextResponse.json({
-        benchmarks: [
-          {
-            category: "discount_rate",
-            business_stage: businessStage,
-            metric_name: "median_wacc",
-            value: defaults.discountRate.median,
-            p25: defaults.discountRate.low,
-            p75: defaults.discountRate.high,
-            source: "Damodaran 2025 (fallback)",
-          },
-          {
-            category: "royalty_rate",
-            business_stage: businessStage,
-            metric_name: "median_royalty_rate",
-            value: defaults.royaltyRate.median,
-            p25: defaults.royaltyRate.low,
-            p75: defaults.royaltyRate.high,
-            source: "RoyaltySource 2024 (fallback)",
-          },
-        ] as Benchmark[],
-        count: 2,
-      });
-    }
-
-    return NextResponse.json({ benchmarks: [], count: 0 });
+    // DB unavailable. There is no honest fallback: the values used to be served under invented
+    // sources ("Damodaran 2025 (fallback)"), which is a citation that exists in no file. An empty
+    // list is the truthful answer until the data is reachable.
+    // An empty 200 is indistinguishable from "the table is empty", and a cache will persist it.
+    return NextResponse.json(
+      { error: "BENCHMARKS_UNAVAILABLE", message: "Benchmark store is unreachable" },
+      { status: 503 }
+    );
   }
 }

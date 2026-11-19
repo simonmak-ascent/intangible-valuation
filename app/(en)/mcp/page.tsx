@@ -7,7 +7,7 @@ export default function MCPPage() {
 
       <h1 className="text-display-sm text-primary-500 mt-6 mb-4">MCP Gateway</h1>
       <p className="text-lg text-neutral-500 mb-8">
-        Connect any AI agent to 49 valuation tools via the Model Context Protocol.
+        Connect any AI agent to 14 valuation tools via the Model Context Protocol.
         One <code>pip install</code> and your agent can perform any valuation calculation.
       </p>
 
