@@ -7,6 +7,7 @@ settings:
 overrides:
   postcss: 8.5.33
   vite: 7.3.7
+  rollup@3: 3.30.0
 
 importers:
 
@@ -978,7 +979,7 @@ packages:
     resolution: {integrity: sha512-+tNWdlWKbpB3WgBN7ijjYkq9X5uhjmcvyjEght4NmH5fAU++zfQzAJ6wumLS+dNcvwEZhKx2Z+skY8m7v0wGSA==}
     engines: {node: '>=16.0.0 || 14 >= 14.17'}
     peerDependencies:
-      rollup: ^2.68.0||^3.0.0||^4.0.0
+      rollup: 3.30.0
     peerDependenciesMeta:
       rollup:
         optional: true
@@ -987,7 +988,7 @@ packages:
     resolution: {integrity: sha512-MfPp06CjRLfXQ3wY0R8vJDYBy/MvVcc9OulEfR0B8Iv9ko+GCNaRZ+EpJYFl27LhKsZK0o420sYCRHCjfCgeUg==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
-      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+      rollup: 3.30.0
     peerDependenciesMeta:
       rollup:
         optional: true
@@ -3214,8 +3215,8 @@ packages:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
 
-  rollup@3.29.5:
-    resolution: {integrity: sha512-GVsDdsbJzzy4S/v3dqWPJ7EfvZJfCHiDqe80IyrF59LYuP+e6U1LJoUqeuqRbwAWoMNoXivMNeNAOf5E22VA1w==}
+  rollup@3.30.0:
+    resolution: {integrity: sha512-kQvGasUgN+AlWGliFn2POSajRQEsULVYFGTvOZmK06d7vCD+YhZztt70kGk3qaeAXeWYL5eO7zx+rAubBc55eA==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -4587,9 +4588,9 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
-  '@rollup/plugin-commonjs@28.0.1(rollup@3.29.5)':
+  '@rollup/plugin-commonjs@28.0.1(rollup@3.30.0)':
     dependencies:
-      '@rollup/pluginutils': 5.4.0(rollup@3.29.5)
+      '@rollup/pluginutils': 5.4.0(rollup@3.30.0)
       commondir: 1.0.1
       estree-walker: 2.0.2
       fdir: 6.5.0(picomatch@4.0.7)
@@ -4597,15 +4598,15 @@ snapshots:
       magic-string: 0.30.21
       picomatch: 4.0.7
     optionalDependencies:
-      rollup: 3.29.5
+      rollup: 3.30.0
 
-  '@rollup/pluginutils@5.4.0(rollup@3.29.5)':
+  '@rollup/pluginutils@5.4.0(rollup@3.30.0)':
     dependencies:
       '@types/estree': 1.0.9
       estree-walker: 2.0.2
       picomatch: 4.0.7
     optionalDependencies:
-      rollup: 3.29.5
+      rollup: 3.30.0
 
   '@rollup/rollup-android-arm-eabi@4.68.7':
     optional: true
@@ -4777,7 +4778,7 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/semantic-conventions': 1.43.0
-      '@rollup/plugin-commonjs': 28.0.1(rollup@3.29.5)
+      '@rollup/plugin-commonjs': 28.0.1(rollup@3.30.0)
       '@sentry-internal/browser-utils': 8.55.2
       '@sentry/core': 8.55.2
       '@sentry/node': 8.55.2
@@ -4788,7 +4789,7 @@ snapshots:
       chalk: 3.0.0
       next: 15.5.28(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       resolve: 1.22.8
-      rollup: 3.29.5
+      rollup: 3.30.0
       stacktrace-parser: 0.1.11
     transitivePeerDependencies:
       - '@opentelemetry/context-async-hooks'
@@ -6975,7 +6976,7 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  rollup@3.29.5:
+  rollup@3.30.0:
     optionalDependencies:
       fsevents: 2.3.3
 
