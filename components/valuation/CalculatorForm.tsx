@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import type { MethodParameter, ValuationResult, BusinessStage } from "@/lib/valuation/types";
-import { trackEvent } from "@/lib/analytics";
 import { StageSelector } from "./StageSelector";
 import { ValuationResultCard } from "./ValuationResultCard";
 
@@ -70,7 +69,6 @@ export function CalculatorForm({
 
       const valuationResult = await onCalculate(params, stage);
       setResult(valuationResult);
-      trackEvent("calculation", { method: methodSlug });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Calculation failed");
     } finally {
