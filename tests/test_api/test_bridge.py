@@ -3,6 +3,11 @@
 Validates method resolution precedence (header → body → path),
 snake_case/kebab-case normalization, and catalog traceability —
 every frontend catalogued method must map to an executable route.
+
+The MCP half of that invariant was retired with ``app/v1/mcp``: the hosted MCP
+now dispatches through ``mcp_server.tool_surface.call_tool``, not through these
+routes, and its surface is guarded by ``tests/test_agent_guides.py`` and
+``tests/test_mcp/test_server.py``.
 """
 
 from __future__ import annotations
@@ -16,17 +21,11 @@ from api.index import HARDCODED, ROUTES, _normalize_slug, _resolve_valuation_fn,
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPO_ROOT / "lib" / "valuation" / "catalog.ts"
-MCP_PATH = REPO_ROOT / "app" / "v1" / "mcp" / "route.ts"
 
 
 def _catalog_slugs() -> list[str]:
     text = CATALOG_PATH.read_text(encoding="utf-8")
     return re.findall(r'slug:\s*"([a-z0-9-]+)"', text)
-
-
-def _mcp_tool_names() -> list[str]:
-    text = MCP_PATH.read_text(encoding="utf-8")
-    return re.findall(r'name:\s*"([a-z0-9_]+)"', text)
 
 
 class TestResolveMethod:
@@ -80,11 +79,6 @@ class TestCatalogTraceability:
     def test_no_duplicate_catalog_slugs(self) -> None:
         slugs = _catalog_slugs()
         assert len(slugs) == len(set(slugs)), "Duplicate catalogued slugs detected"
-
-    def test_mcp_tool_names_resolve_to_routes(self) -> None:
-        tools = _mcp_tool_names()
-        orphans = [t for t in tools if _normalize_slug(t) not in ROUTES]
-        assert orphans == [], f"MCP tools without a route: {orphans}"
 
     def test_hardcoded_fallbacks_present(self) -> None:
         assert len(HARDCODED) >= 11, "Expected at least 11 hardcoded fallback methods"

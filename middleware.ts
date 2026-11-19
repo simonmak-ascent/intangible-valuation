@@ -17,7 +17,6 @@ const publicPaths = [
   "/sign-in",
   "/sign-up",
   "/v1/valuation",
-  "/v1/mcp",
   "/v1/benchmarks",
   "/v1/billing/webhook",
   "/v1/auth",

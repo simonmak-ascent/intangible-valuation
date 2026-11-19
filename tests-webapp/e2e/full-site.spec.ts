@@ -262,7 +262,7 @@ test.describe("Full-site regression", () => {
     for (const m of CATALOG) {
       const cases = genCases(m);
       for (let i = 0; i < cases.length; i++) {
-        const res = await request.post(`${BASE}/v1/valuation/${m.slug}`, { data: cases[i] });
+        const res = await request.post(`${BASE}/api/valuation/${m.slug}`, { data: cases[i] });
         const status = res.status();
         if (status === 200) {
           const body = await res.json();
@@ -294,7 +294,7 @@ test.describe("Full-site regression", () => {
   test("core methods produce correct textbook values (5 cases each)", async ({ request }) => {
     // Known-good formulas verified against textbook values.
     const pv = async (fv: number, r: number, n: number) => {
-      const res = await request.post(`${BASE}/v1/valuation/present-value`, { data: { future_value: fv, discount_rate: r, periods: n } });
+      const res = await request.post(`${BASE}/api/valuation/present-value`, { data: { future_value: fv, discount_rate: r, periods: n } });
       return (await res.json()).value as number;
     };
     const cases: [number, number, number][] = [
@@ -308,7 +308,7 @@ test.describe("Full-site regression", () => {
     }
 
     const fv = async (pv0: number, r: number, n: number) => {
-      const res = await request.post(`${BASE}/v1/valuation/future-value`, { data: { present_value: pv0, discount_rate: r, periods: n } });
+      const res = await request.post(`${BASE}/api/valuation/future-value`, { data: { present_value: pv0, discount_rate: r, periods: n } });
       return (await res.json()).value as number;
     };
     for (const [p0, r, n] of cases) {
