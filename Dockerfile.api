@@ -24,14 +24,48 @@ FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
+# CVE-2026-85091 (HIGH, fixed) is zlib1g 1:1.3.dfsg+really1.3.1-1+b1 in this base digest. The fix,
+# 1:1.3.dfsg+really1.3.1-1+deb13u1 (DSA-6613-1, trixie-security), is in the archive while the upstream
+# `python:3.12-slim` digest has not been rebuilt with it — so taking it here is the remediation rather
+# than a suppression. Measured 2026-11-20, when the image scan failed the publish on exactly this.
+#
+# This image asserts revisions; it is not bit-reproducible, and neither was it before this layer —
+# `constraints-api.txt` pins versions, not hashes. `apt-get update` reads the archive's current index,
+# so what is fixed here is one version string, not the bytes and not the transaction: a dependency apt
+# moves to satisfy the pin is not asserted, and the trivy gate covers the vulnerable part of the
+# package set at HIGH and CRITICAL, fixed findings only (`--ignore-unfixed`).
+# The `dpkg -s` check below reads dpkg's installed-status database rather than apt's intent, so it
+# fails the build if the installed version is anything else; `--no-remove` fails it if apt would
+# remove a package to satisfy the pin.
+#
+# Shelf life: when Debian supersedes deb13u1 the pin has two possible fates, and the optimistic one is
+# not the likely one. apt resolves a version only from the indexes `apt-get update` fetched — it
+# reaches the pool through their `Filename:` fields — so while any configured suite still lists
+# deb13u1 (trixie, trixie-updates, or trixie-security before it moves on) the pin keeps installing a
+# superseded version silently, with no build error. Once every suite drops it the build fails loudly
+# instead (apt-get exits 100). What catches the silent case is the trivy gate: a HIGH or CRITICAL
+# CVE fixed only in a newer version is a *fixed* finding against the installed one, so it fails the
+# publish. Bump this version when that happens, or delete the block once the base digest carries the
+# fix.
+# The version is inline rather than a build ARG because an ARG is an override, and an overridable
+# value is not a pin: `--build-arg` would install a different zlib1g — another version, or a suite
+# spec such as `zlib1g/trixie-backports` — in this root, network-enabled layer, with nothing in the
+# build saying so. (In a shell-form RUN it is the shell that expands `$VAR`, not the builder:
+# Dockerfile reference, "Environment replacement". Expansion results are not re-parsed as syntax, so
+# the old form could not have executed a command; it could only have changed what apt installed.)
+RUN apt-get update \
+    && apt-get install -y --no-remove --no-install-recommends "zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1" \
+    && test "$(dpkg -s zlib1g | awk '/^Version:/ {print $2}')" = "1:1.3.dfsg+really1.3.1-1+deb13u1" \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # The root wheel ships both the engine (`src/`) and the MCP package (`mcp_server/`), so both must be
 # present before the build backend runs.
 #
-# No extra is installed. The hosted handler `api.mcp` imports only the standard library plus
-# `mcp_server.{agent_guides,tool_surface}`, and neither imports fastmcp — that is the *stdio* server
-# (`mcp_server/server.py`, entrypoint `intangible-valuation-mcp`), which no container in
+# No extra is installed. The hosted handler `api.mcp` imports only the standard library, `api.limits`
+# and `mcp_server.{agent_guides,tool_surface}`, none of which imports fastmcp — that is the *stdio*
+# server (`mcp_server/server.py`, entrypoint `intangible-valuation-mcp`), which no container in
 # `container.json` runs. `.[mcp]` here would add fastmcp, starlette, uvicorn and httpx to the image
 # for a code path it never executes.
 COPY pyproject.toml README.md LICENSE ./
