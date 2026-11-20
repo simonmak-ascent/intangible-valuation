@@ -29,7 +29,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          # setuptools is pinned upward because the 3.11 toolbox ships 79.0.1, which carries three
+          # advisories: PYSEC-2026-3447 (twice) is fixed at 83.0.0 and GHSA-xmj3-9gf7-h52w at 84.1.0,
+          # so the floor is the higher of the two. Upgrading here rather than before the audit keeps
+          # one environment — the first run of the audit gate is what found this.
+          python -m pip install --upgrade pip "setuptools>=84.1.0"
           pip install -e ".[dev,mcp]"
 
       - name: Lint with ruff
