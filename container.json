@@ -22,7 +22,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "The node's own Next.js release (node server.js, not a standalone .next) copied into the image; uid 1001 is the deploy user the unit ran as. The unit's env file carries only PORT, and no secret is configured for it: no AUTH_SECRET and no STRIPE_* since the account surface was deleted on 2026-11-19, and no database of any kind since SurrealDB was removed the same day - the benchmark records are a bundled file. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release. Lean rebuild 2026-10-27: one COPY --chown layer and no .next/cache, 517 MB -> 378 MB. Rollout path is a manual pull-by-digest swap on ecs-01/02/03: no caller workflow can exist while apg-infra is private."
+      "notes": "Next.js standalone release (node server.js) built by Dockerfile.web from this tree; the dependency closure is pnpm-lock.yaml and no package manager is installed in the run stage. uid 1001 is declared by the Dockerfile and enforced by run.user, not inherited from a node slot. The env file carries only PORT, and no secret is configured for it: no AUTH_SECRET and no STRIPE_* since the account surface was deleted on 2026-11-19, and no database of any kind since SurrealDB was removed the same day - the benchmark records are a bundled file. Rollout is deploy-digest.yml: it installs this manifest and rollout.sh swaps by digest, publishing the per-container desired-intangible-valuation pointer that peers converge from."
     },
     {
       "name": "intangible-valuation-api",

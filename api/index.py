@@ -6,7 +6,7 @@ There is no fallback: if that import fails the module raises at load, because a 
 formulas serving the same endpoints is worse than a container that refuses to start.
 """
 
-import inspect, json, logging, uuid
+import inspect, json, logging, os, uuid
 
 from api import limits as _limits
 from http.server import BaseHTTPRequestHandler
@@ -378,7 +378,16 @@ def health_response(routes: dict | None = None) -> tuple[int, dict]:
     table = ROUTES if routes is None else routes
     if not table:
         return 503, {"status": "degraded", "reason": "no routes loaded"}
-    return 200, {"status": "ok", "methods": len(table)}
+
+    body: dict = {"status": "ok", "methods": len(table)}
+    # `rollout.sh` injects `IMAGE_DIGEST` on every container it starts, so a fleet check is one HTTP
+    # call per node rather than `docker inspect` on three hosts. Absent outside a container (a bare
+    # `docker run`, or the test suite), and then omitted rather than reported as null — a missing
+    # digest is not the same claim as an unknown one.
+    digest = os.environ.get("IMAGE_DIGEST")
+    if digest:
+        body["digest"] = digest
+    return 200, body
 
 
 def is_health_path(path: str) -> bool:

@@ -432,7 +432,9 @@ class FVLCTSInputs(BaseModel):
 
 def fair_value_less_costs_to_sell(
     fair_value: float,
-    disposal_costs: float,
+    disposal_costs: float | None = None,
+    *,
+    costs_to_sell: float | None = None,
 ) -> ValuationResult:
     """Calculate fair value less costs to sell per IAS 36.
 
@@ -446,23 +448,37 @@ def fair_value_less_costs_to_sell(
         fair_value: Fair value of the asset in an arm's length transaction.
         disposal_costs: Incremental costs directly attributable to disposal
             (legal costs, stamp duty, transaction taxes, removal costs).
+        costs_to_sell: The same quantity under the name the rest of this module
+            uses (`goodwill_impairment_test` and the IAS 36 inputs call it
+            `costs_to_sell`). Accepted as a keyword alias because a caller who
+            reads "costs to sell" in the standard is rejected by a signature
+            that only names `disposal_costs`. Pass exactly one of the two.
 
     Returns:
         ValuationResult with FVLCTS amount, steps, and assumptions.
 
     Raises:
-        ValueError: If inputs are invalid.
+        ValueError: If inputs are invalid, or if both names — or neither — are supplied.
 
     Example:
         >>> result = fair_value_less_costs_to_sell(10_000_000, 500_000)
         >>> result.value
+        9500000.0
+        >>> fair_value_less_costs_to_sell(10_000_000, costs_to_sell=500_000).value
         9500000.0
 
     Reference:
         IAS 36.6-7: Definition of fair value less costs of disposal.
         IFRS 13: Fair Value Measurement.
     """
-    inputs = FVLCTSInputs(fair_value=fair_value, disposal_costs=disposal_costs)
+    if (disposal_costs is None) == (costs_to_sell is None):
+        raise ValueError(
+            "pass exactly one of disposal_costs or costs_to_sell — they are the same IAS 36 quantity, "
+            "and accepting both would leave the caller unsure which the result used"
+        )
+    costs = disposal_costs if disposal_costs is not None else costs_to_sell
+
+    inputs = FVLCTSInputs(fair_value=fair_value, disposal_costs=costs)
 
     fvlcts = inputs.fair_value - inputs.disposal_costs
 

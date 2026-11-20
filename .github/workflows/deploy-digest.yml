@@ -11,15 +11,29 @@ name: deploy-digest
 # The digest must be the one container.json pins — the guard container-cd.yml applies — because a
 # rollout is by digest and a rollback returns to that digest.
 #
-# Two limits worth knowing before dispatching:
-#   * this job is pinned to main, because the guard validates the dispatched ref's container.json and
-#     rollout.sh then installs that file as the node's authoritative manifest;
-#   * it replaces containers on the one node it runs on (apg-ecs-01). The other two are not reached
-#     from here: `rollout.sh --peers` has been accepted-and-ignored since apg-infra #240 — the
-#     installed script is byte-identical to the pinned payload and never reads PEERS — and the fleet
-#     mechanism is the `:desired` tag, which is repo-scoped, so all three containers share it and
-#     moving it from the web image could pull the Python containers onto the Next.js image.
-#     Dispatch per node instead.
+# TWO THINGS THIS FILE GOT WRONG UNTIL 2026-11-20, both measured:
+#
+#   1. It never passed `--publish-pointer`, so `rollout.sh` never published the fleet pointer. Each
+#      peer then fell back to its own recorded manifest and `converge-all.sh` reported "already at
+#      their declared digests" — a green about the node's past intent. Only this node moved; the other
+#      two kept an older, unpinned image until they were given container.json by hand.
+#   2. Its header claimed the fleet pointer is repo-scoped so "all three containers share it".
+#      The installed rollout.sh publishes ONE TAG PER CONTAINER (`desired-<container>`) and the legacy
+#      repo-wide tag only when every container in the repository pins one digest — never true here,
+#      since the web image and the engine are different images. The mechanism is per-container.
+#
+# Moving the pointer is a tag push, so the job needs `packages: write` AND a registry login AND a
+# pre-pull. The pre-pull is not an optimisation: when the image is missing, `rollout.sh` pulls it via
+# `ghcr_login` from the node's READ-ONLY credential in /etc/container-deploy/ghcr.env, which replaces
+# this job's write credential — and then the pointer push fails after the container was already
+# swapped. `fair-value`'s workflow carries the same pre-pull for the same reason.
+#
+# The pointer is published unconditionally, with no input to disable it. `converge.sh:91-101` prefers
+# the pointer to a node's own record, so a rollout that left the pointer alone is rolled back onto it
+# by this job's own converge step — or by the five-minute timer — while reporting success.
+#
+# The job no longer skips on a non-main ref: a skip reported success while deploying nothing. It runs
+# and fails with a message naming the ref, before any step touches a container.
 
 on:
   workflow_dispatch:
@@ -29,11 +43,11 @@ on:
         required: true
       containers:
         description: >-
-          Container names from container.json, comma separated. Pass them explicitly: the default
-          here is the web container, whose pin this change does not move. For the engine pin use
-          intangible-valuation-api,intangible-valuation-mcp.
-        required: false
-        default: "intangible-valuation"
+          Container names from container.json, comma separated. Required: there is no safe default.
+          The web container is one thing and the engine is another, and a dispatch that guesses rolls
+          the wrong pin. For the engine: intangible-valuation-api,intangible-valuation-mcp
+        required: true
+        type: string
       dry_run:
         description: "Resolve and print the run command, change nothing"
         type: boolean
@@ -41,10 +55,12 @@ on:
 
 permissions:
   contents: read
+  # Moving the desired pointer is a tag push; without this scope, and without the login below, the
+  # push is unauthorised and the deploy dies after the local container has already been swapped.
+  packages: write
 
 jobs:
   deploy:
-    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: [self-hosted, apg-ecs-01]
     timeout-minutes: 15
     # One node, eight runner slots: two concurrent swaps of the same port-bound container leave the
@@ -53,6 +69,13 @@ jobs:
       group: deploy-digest-${{ inputs.containers }}
       cancel-in-progress: false
     steps:
+      # A skipped job reported success. Fail instead, before anything is touched.
+      - name: Refuse a dispatch that is not from main
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::this workflow installs the dispatched ref's container.json on the node, so it runs from main only (got $GITHUB_REF). Dispatch with --ref main."
+          exit 1
+
       - uses: actions/checkout@v7
 
       - name: Validate the digest against the declaration, and resolve runtime names
@@ -89,7 +112,21 @@ jobs:
                   print(f"::error::{name} pins {pinned[:19] or '(nothing)'} but you asked for {digest[:19]} — open a pull request that pins it, so the gate runs first")
                   bad += 1
                   continue
-              plan.append(f"{name} {spec.get('docker_name') or name}")
+              plan.append(f"{name} {spec.get('docker_name') or name} {spec.get('image')}")
+
+          # Every container pinning this digest must be named. One image can back more than one role
+          # (the engine backs -api and -mcp), and deploying one leaves its sibling on the old digest on
+          # every node while the job is green — the same "green about a fleet that has not moved" this
+          # workflow exists to stop.
+          omitted = [
+              n for n, spec in items.items()
+              if (spec.get("image") or "").split("@")[-1].removeprefix("sha256:") == digest
+              and n not in names
+          ]
+          if omitted:
+              print(f"::error::this digest also backs {', '.join(omitted)} — name them too, or that role stays on its old image")
+              bad += 1
+
           if bad:
               sys.exit(1)
 
@@ -98,21 +135,103 @@ jobs:
           print("\n".join(plan))
           PY
 
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Per-job, so the node's read-only credential in the default location is never the one this
+          # job's push ends up using by accident.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          mkdir -p "$DOCKER_CONFIG"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # Before the rollout: an image already present means `rollout.sh` never calls `ghcr_login`, so
+      # this job's write credential survives to the pointer push.
+      - name: Pull the digest so the rollout never fetches with the node credential
+        if: ${{ !inputs.dry_run }}
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          set -eu
+          # The ref comes from the manifest's own `image` — the pullable form — not from
+          # github.repository, which is a second copy of a shared fact that would silently diverge if
+          # a container ever named a different package. rollout.sh names the pointer from the
+          # container's `repo` field (container-spec.py:100); `image` names the same repository in this
+          # manifest, so the two agree today (container.json:6/7, :30/31, :60/61).
+          while read -r name _ ref; do
+            attempt=1
+            while :; do
+              if docker pull "$ref"; then break; fi
+              if [ "$attempt" -ge 3 ]; then echo "::error::could not pull $ref after $attempt attempts"; exit 1; fi
+              echo "pull failed (attempt $attempt); retrying in 10s"
+              attempt=$((attempt + 1)); sleep 10
+            done
+          done < "$RUNNER_TEMP/deploy-plan"
+
       - name: Roll out
         env:
           DIGEST: ${{ inputs.digest }}
           DRY_RUN: ${{ inputs.dry_run }}
           WORKSPACE: ${{ github.workspace }}
           RUNNER_TEMP: ${{ runner.temp }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
         run: |
           set -eu
-          while read -r name docker_name; do
+          while read -r name docker_name _; do
             args=(--container "$name" --digest "$DIGEST" --docker-name "$docker_name"
                   --manifest "$WORKSPACE/container.json")
             [ "${DRY_RUN:-false}" = "true" ] && args+=(--dry-run)
+            # Always published, with no opt-out. The reconciler prefers the pointer to this node's
+            # record (converge.sh:91-101), so a rollout that leaves the pointer where it was is rolled
+            # BACK onto it by the very converge step below — or by the five-minute timer — while the
+            # job reports success. An escape hatch here would be a green that describes nothing.
+            args+=(--publish-pointer)
             /opt/container-deploy/rollout.sh "${args[@]}"
           done < "$RUNNER_TEMP/deploy-plan"
+
+      # The pointer is what moves the other nodes; rollout.sh already guarantees this node's container
+      # answers with $DIGEST, so asserting that locally would be a check that cannot fail.
+      - name: The pointer names the digest we deployed
+        if: ${{ !inputs.dry_run }}
+        env:
+          DIGEST: ${{ inputs.digest }}
+          RUNNER_TEMP: ${{ runner.temp }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          set -eu
+          digest="${DIGEST#sha256:}"
+          bad=0
+          while read -r name _ ref; do
+            repo="${ref%%@*}"
+            tag="${repo}:desired-${name}"
+            # Keep docker's own message: a 403 here is the failure mode this whole change is about,
+            # and discarding it would send the operator to the registry instead of the credential.
+            if ! out="$(docker pull -q "$tag" 2>&1)"; then
+              echo "::error::$tag was not published"
+              printf '%s\n' "$out" | tail -3
+              bad=1
+              continue
+            fi
+            # Filter by repository, as converge.sh does: RepoDigests order is not ours to assume, and
+            # a manifest-list image also carries its index digest there.
+            got="$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$tag" \
+              | grep -m1 "^${repo}@" | sed 's/.*@sha256://')"
+            if [ "$got" != "$digest" ]; then
+              echo "::error::$tag names ${got:0:19} but we deployed ${digest:0:19}"
+              bad=1
+            else
+              echo "pointer ok: $tag -> ${got:0:19}"
+            fi
+          done < "$RUNNER_TEMP/deploy-plan"
+          exit "$bad"
 
       - name: The reconciler must agree with what was rolled out
         if: ${{ !inputs.dry_run }}
         run: /opt/container-deploy/converge-all.sh
+
+      - name: Log out
+        if: always()
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: docker logout ghcr.io || true

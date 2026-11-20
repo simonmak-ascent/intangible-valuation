@@ -3,17 +3,25 @@
   "default_branch": "main",
   "merge": "pr-required",
   "verify": [
+    "python -m pytest -q",
     "pnpm -r typecheck",
     "pnpm -r test",
     "pnpm -r build"
   ],
   "deploy": {
-    "kind": "workflow",
-    "workflow": "publish.yml"
+    "kind": "container",
+    "workflow": "deploy-digest.yml",
+    "targets": ["ecs-01", "ecs-02", "ecs-03"],
+    "converge": "container-converge.timer",
+    "converge_from": "apg-infra"
   },
   "e2e": [
     {
       "probe": "https://intangible-valuation.ascent-partners.com/",
+      "expect": 200
+    },
+    {
+      "probe": "https://intangible-valuation.ascent-partners.com/api/health",
       "expect": 200
     }
   ]
