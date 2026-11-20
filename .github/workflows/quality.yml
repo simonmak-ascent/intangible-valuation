@@ -9,6 +9,9 @@ on:
 jobs:
   webapp-quality:
     runs-on: [self-hosted, apg-ci-04]
+    # Takes ~2.5 minutes. 30 catches the recorded failure mode — a `next build` waiting on Google
+    # Fonts at 0% CPU for 31 minutes — while leaving room for a cold cache.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 

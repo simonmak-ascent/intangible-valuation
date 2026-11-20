@@ -11,6 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -35,6 +36,8 @@ jobs:
   build-and-upload:
     needs: verify
     runs-on: [self-hosted, apg-ci-04]
+    # `python -m build` + twine upload: network-bound, and otherwise inherits the 6-hour default.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -64,6 +67,7 @@ jobs:
   publish-to-pypi:
     needs: build-and-upload
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 15
     environment:
       name: pypi
       url: https://pypi.org/p/intangible-valuation

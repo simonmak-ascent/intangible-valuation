@@ -34,8 +34,8 @@
         "intangible-valuation.ascent-partners.com"
       ],
       "health": {
-        "proto": "tcp",
-        "path": "/"
+        "proto": "http",
+        "path": "/api/health"
       },
       "run": {
         "user": "1001:1001",
@@ -47,7 +47,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The ALB group probes TCP because the app has no health path. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
+      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The reconciler and rollout probe HTTP on /api/health, which answers 503 when the route table is empty; the ALB target-group health check is declared in apg-infra and is not driven by this file. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
       "cmd": [
         "sh",
         "-c",
@@ -64,7 +64,7 @@
         "intangible-valuation.ascent-partners.com"
       ],
       "health": {
-        "proto": "tcp",
+        "proto": "http",
         "path": "/"
       },
       "run": {

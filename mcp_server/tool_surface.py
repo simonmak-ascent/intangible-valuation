@@ -352,6 +352,14 @@ PARAMS: dict[str, dict[str, Any]] = {
         "enum": ["ASC350", "IAS36"],
     },
     "recoverable_amount": {"type": "number", "description": "Recoverable amount (IAS 36), in currency units."},
+    "value_in_use": {
+        "type": "number",
+        "description": "IAS 36 value in use, in currency units. Recoverable amount is the higher of this and fair value less costs to sell.",
+    },
+    "costs_to_sell": {
+        "type": "number",
+        "description": "IAS 36 costs to sell, deducted from fair value. Default 0.",
+    },
     # royalty analysis
     "ip_type": {
         "type": "string",
@@ -1117,11 +1125,17 @@ TOOLS: list[dict[str, Any]] = [
         "methods": [
             _method(
                 "goodwill_impairment",
-                "Impairment = carrying value - fair value (if positive).",
+                "Impairment = max(0, carrying value - recoverable amount). IAS 36: recoverable amount is the "
+                "HIGHER of fair value less costs to sell and value in use.",
                 "intangible_valuation.advanced.impairment_testing",
                 "goodwill_impairment_test",
                 {"carrying_value": "carrying_value", "fair_value": "fair_value"},
-                {"reporting_unit": "reporting_unit", "standard": "standard"},
+                {
+                    "reporting_unit": "reporting_unit",
+                    "standard": "standard",
+                    "value_in_use": "value_in_use",
+                    "costs_to_sell": "costs_to_sell",
+                },
             ),
             _method(
                 "intangible_impairment",
@@ -1132,7 +1146,11 @@ TOOLS: list[dict[str, Any]] = [
                 {"fair_value": "fair_value", "recoverable_amount": "recoverable_amount", "standard": "standard"},
             ),
         ],
-        "constraints": "fair_value is required for ASC350; recoverable_amount is required for IAS36.",
+        "constraints": (
+            "intangible_impairment: fair_value is required for ASC350, recoverable_amount for IAS36. "
+            "goodwill_impairment takes fair_value under either standard and ignores recoverable_amount; "
+            "its IAS 36 inputs are value_in_use and costs_to_sell."
+        ),
     },
     {
         "name": "valuation_royalty_analysis",

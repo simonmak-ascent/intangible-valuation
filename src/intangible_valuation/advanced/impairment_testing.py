@@ -15,6 +15,11 @@ from intangible_valuation.core import ValuationResult, present_value, terminal_v
 class GoodwillImpairmentInput(BaseModel):
     carrying_value: float = Field(gt=0, description="Reporting unit carrying value including goodwill")
     fair_value: float = Field(ge=0, description="Reporting unit fair value")
+    # IAS 36 only. Validated here rather than trusted from the two new keyword arguments, because
+    # the sibling FVLCTSInputs validates the same quantity and a negative cost silently *increases*
+    # the fair-value leg.
+    value_in_use: float | None = Field(default=None, ge=0, description="Value in use (IAS 36 only)")
+    costs_to_sell: float = Field(default=0.0, ge=0, description="Costs to sell (IAS 36 only)")
     reporting_unit: str = Field(default="", description="Name of the reporting unit")
     standard: str = Field(default="ASC350", pattern="^(ASC350|IAS36)$", description="Accounting standard")
 
@@ -31,6 +36,8 @@ def goodwill_impairment_test(
     fair_value: float,
     reporting_unit: str = "",
     standard: str = "ASC350",
+    value_in_use: float | None = None,
+    costs_to_sell: float = 0.0,
 ) -> ValuationResult:
     """Test goodwill for impairment per ASC 350 or IAS 36.
 
@@ -42,6 +49,13 @@ def goodwill_impairment_test(
         Impairment = Carrying Value - Recoverable Amount
         Recoverable amount = higher of (FV less costs to sell, value in use)
         For goodwill, the reporting unit is the cash-generating unit (CGU).
+
+    The IAS 36 branch used to take `fair_value` as the recoverable amount. That is the *lower* of
+    the two components whenever value in use exceeds fair value less costs to sell, so it overstated
+    the impairment by exactly the gap — and the module already has `value_in_use()` and
+    `fair_value_less_costs_to_sell()` to compute both. `value_in_use` is optional because callers
+    that only have fair value still work; when it is absent the steps say so rather than implying
+    the comparison was made.
 
     Args:
         carrying_value: Carrying value of the reporting unit (including goodwill).
@@ -63,6 +77,8 @@ def goodwill_impairment_test(
     GoodwillImpairmentInput(
         carrying_value=carrying_value,
         fair_value=fair_value,
+        value_in_use=value_in_use,
+        costs_to_sell=costs_to_sell,
         reporting_unit=reporting_unit,
         standard=standard,
     )
@@ -93,7 +109,16 @@ def goodwill_impairment_test(
         formula_ref = "Ch 10.4, ASC 350-20-35"
 
     elif standard == "IAS36":
-        recoverable_amount = fair_value
+        # IAS 36.18: recoverable amount is the HIGHER of fair value less costs to sell and value in
+        # use. Taking fair value alone is the lower bound, so it overstates the impairment whenever
+        # value in use is greater.
+        # Clamped at zero: fair value less costs to sell cannot be negative in substance, and an
+        # unclamped negative would make the impairment exceed the carrying value — writing the asset
+        # below zero, which no accounting standard permits.
+        fair_value_less_costs = max(0.0, fair_value - costs_to_sell)
+        recoverable_amount = (
+            max(fair_value_less_costs, value_in_use) if value_in_use is not None else fair_value_less_costs
+        )
         if recoverable_amount < carrying_value:
             impairment = carrying_value - recoverable_amount
             impaired = True
@@ -110,15 +135,25 @@ def goodwill_impairment_test(
             {"step": 3, "description": "Carrying Value", "value": carrying_value},
             {
                 "step": 4,
-                "description": "Recoverable Amount (using fair value)",
-                "value": recoverable_amount,
+                "description": "Fair Value Less Costs to Sell",
+                "value": round(fair_value_less_costs, 2),
+                "calculation": f"{fair_value} - {costs_to_sell}",
             },
             {
                 "step": 5,
+                "description": (
+                    "Recoverable Amount = max(FV less costs to sell, value in use)"
+                    if value_in_use is not None
+                    else "Recoverable Amount — value in use not supplied, using fair value less costs to sell"
+                ),
+                "value": round(recoverable_amount, 2),
+            },
+            {
+                "step": 6,
                 "description": "Impairment = max(0, CV - Recoverable Amount)",
                 "calculation": f"max(0, {carrying_value} - {recoverable_amount})",
             },
-            {"step": 6, "description": "Impairment Loss", "value": round(impairment, 2)},
+            {"step": 7, "description": "Impairment Loss", "value": round(impairment, 2)},
         ]
         formula_ref = "Ch 10.4, IAS 36"
     else:
@@ -132,6 +167,8 @@ def goodwill_impairment_test(
         assumptions={
             "carrying_value": carrying_value,
             "fair_value": fair_value,
+            "value_in_use": value_in_use,
+            "costs_to_sell": costs_to_sell,
             "reporting_unit": reporting_unit,
             "standard": standard,
             "impaired": impaired,

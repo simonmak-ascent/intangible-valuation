@@ -96,6 +96,7 @@ jobs:
   typecheck:
     if: inputs.typecheck-cmd != ''
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@v6
@@ -117,6 +118,7 @@ jobs:
 
   unit:
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@v6
@@ -137,6 +139,7 @@ jobs:
   coverage:
     if: inputs.coverage-cmd != ''
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -157,6 +160,7 @@ jobs:
     # and the probe could only report "could not run".
     if: inputs.probe-test-cmd != '' && github.event_name == 'pull_request'
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -191,6 +195,7 @@ jobs:
   integration:
     if: inputs.integration-cmd != ''
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@v6
@@ -207,6 +212,7 @@ jobs:
   e2e:
     if: inputs.e2e-cmd != ''
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@v6

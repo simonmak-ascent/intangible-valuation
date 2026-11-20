@@ -27,6 +27,9 @@ env:
 jobs:
   image:
     runs-on: [self-hosted, apg-ecs-01]
+    # The build fetches fonts and pip wheels. 45 minutes is generous for a cold build and still
+    # bounded; without it, the default is six hours.
+    timeout-minutes: 45
     steps:
       - name: Check the runner can reach Docker
         run: |

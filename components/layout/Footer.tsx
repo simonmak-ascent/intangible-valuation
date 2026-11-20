@@ -43,6 +43,10 @@ export function Footer() {
               <li><a href="https://github.com/simonmak-ascent/intangible-valuation" className="text-sm text-neutral-500 hover:text-primary-500">GitHub</a></li>
               <li><a href="https://pypi.org/project/intangible-valuation/" className="text-sm text-neutral-500 hover:text-primary-500">PyPI</a></li>
               <li><a href="https://github.com/simonmak-ascent/intangible-valuation/issues" className="text-sm text-neutral-500 hover:text-primary-500">Issues</a></li>
+              {/* OFL 1.1 clause 2 asks that the licence be reachable by the user; a file served at a
+                  URL nobody links is not. The fonts ship in `public/fonts`, and this is how a reader
+                  finds the notices that travel with them. */}
+              <li><a href="/fonts/OFL.txt" className="text-sm text-neutral-500 hover:text-primary-500">Font licences</a></li>
             </ul>
           </div>
         </div>

@@ -12,6 +12,7 @@ permissions:
 jobs:
   publish:
     runs-on: [self-hosted, apg-ci-04]
+    timeout-minutes: 15
     environment: mcp-registry-publish
     steps:
       - uses: actions/checkout@v7

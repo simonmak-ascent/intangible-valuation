@@ -12,6 +12,8 @@ permissions:
 jobs:
   build:
     runs-on: [self-hosted, apg-ci-04]
+    # mkdocs build + deploy; the six-hour default turns a stuck fetch into a parked queue.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
