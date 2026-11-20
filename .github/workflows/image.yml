@@ -49,9 +49,12 @@ name: image
 # Not reproducible, and no longer claimed to be: the database is fetched from the rolling `:2` tag at
 # scan time, so identical image bytes can be judged against a different database on a later day.
 # `TRIVY_CACHE_DIR` in `$RUNNER_TEMP` exists to stop a persistent runner carrying a stale or poisoned
-# database between dispatches — not to pin one. Pinning it by digest is open. So is the larger gap
-# this cannot cover: `Dockerfile.web` builds from `node:22-slim` and `python:3.12-slim` **tags**, so
-# the web digest is not rebuildable from the commit. `Dockerfile.api` does pin its base by digest.
+# database between dispatches — not to pin one. Pinning it by digest is open. Both image files pin
+# their bases by digest as of 2026-11-20 — `Dockerfile.web` all four (node:22-slim ×3,
+# python:3.12-slim ×1), `Dockerfile.api` its one — so each image asserts the revisions its commit
+# names. What is still unasserted is said rather than implied: the pip and build-backend fetch in each
+# Dockerfile, and the apt transaction `Dockerfile.api:32-36` describes, which is why that image calls
+# itself version-asserted and not bit-reproducible.
 
 on:
   workflow_dispatch:

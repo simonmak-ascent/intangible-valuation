@@ -8,7 +8,10 @@
 # `next.config.ts` sets `output: "standalone"`, so the run stage needs only the
 # standalone bundle plus the static assets and `public/`.
 
-FROM node:22-slim AS deps
+# Every base is pinned by digest, not by the floating tag: the image's revision label asserts a commit,
+# and a tag that moves would make two builds of the same commit differ. Tags stay in comments for a
+# reader. Resolved 2026-11-20.
+FROM node:22-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS deps
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
@@ -20,7 +23,7 @@ COPY package.json pnpm-lock.yaml ./
 # those changes, copy pnpm-workspace.yaml into this stage instead and let the allowlist govern it.
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-FROM node:22-slim AS build
+FROM node:22-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS build
 WORKDIR /app
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
@@ -31,7 +34,7 @@ RUN pnpm build
 # The library reference is generated from the same source as the library itself, so the docs a reader
 # gets describe the code that runs. mkdocstrings renders the docstrings, which the Next app cannot do —
 # and the MkDocs site was previously built in CI and published nowhere.
-FROM python:3.12-slim AS docs
+FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS docs
 WORKDIR /src
 ENV PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1
@@ -49,7 +52,7 @@ RUN pip install --quiet --upgrade pip \
  && pip install --quiet -c constraints-docs.txt ".[docs]" \
  && mkdocs build --strict --site-dir /site
 
-FROM node:22-slim AS run
+FROM node:22-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS run
 WORKDIR /app
 RUN useradd --uid 1001 --create-home app
 # HOSTNAME must be 0.0.0.0, never 127.0.0.1: the i18n middleware otherwise rewrites
@@ -63,6 +66,22 @@ COPY --from=build --chown=1001:1001 /app/.next/static ./.next/static
 COPY --from=build --chown=1001:1001 /app/public ./public
 # The library reference, built from the same commit (see the docs stage above), served as static files.
 COPY --from=docs --chown=1001:1001 /site ./public/docs
+
+# The runtime needs no package manager: `CMD` is `node server.js`, and the standalone bundle carries
+# its own modules. npm is not unused-by-accident — it ships its own dependency tree inside
+# `node:22-slim`, and on 2026-11-20 the image scan failed the publish on 12 HIGH findings in it
+# (pacote, sigstore, ip-address, brace-expansion, picomatch) while the application's own dependencies
+# were clean: `pnpm audit --audit-level=high` reports none. Removing it is removing an unused
+# component, not a suppression.
+#
+# Layer truth, so nobody is surprised later: this RUN adds a whiteout. The bytes (18 MB of npm) stay in
+# the base layer and still travel in the image; trivy applies whiteouts, so the findings leave the
+# report, which is the intent. A runtime base that never carried npm is the only way to remove them
+# from the layer history as well.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+           /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+           /usr/local/bin/yarn /usr/local/bin/yarnpkg
+
 USER 1001
 EXPOSE 3121
 CMD ["node", "server.js"]

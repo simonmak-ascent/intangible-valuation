@@ -376,3 +376,27 @@ class TestCGUImpairment:
             carrying_value=1_000, fair_value=100, costs_to_sell=500, standard="IAS36"
         )
         assert result.value == 1_000.0
+
+
+class TestOneVocabulary:
+    """`disposal_costs` and `costs_to_sell` are the same IAS 36 quantity.
+
+    Measured 2026-11-20: a caller reading the standard says "costs to sell", which
+    `goodwill_impairment_test` also uses, while this function named it `disposal_costs` — so the same
+    payload succeeded on one method and returned 400 on another. Both names are accepted; supplying
+    both is refused rather than silently preferring one.
+    """
+
+    def test_the_two_names_agree(self):
+        positional = fair_value_less_costs_to_sell(800.0, 50.0)
+        aliased = fair_value_less_costs_to_sell(800.0, costs_to_sell=50.0)
+
+        assert positional.value == aliased.value == 750.0
+
+    def test_both_names_is_refused(self):
+        with pytest.raises(ValueError, match="exactly one of"):
+            fair_value_less_costs_to_sell(800.0, 50.0, costs_to_sell=50.0)
+
+    def test_neither_name_is_refused(self):
+        with pytest.raises(ValueError, match="exactly one of"):
+            fair_value_less_costs_to_sell(800.0)

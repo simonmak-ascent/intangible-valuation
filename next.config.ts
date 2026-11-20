@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        // The directives that need no nonce, and therefore work with a static headers() block.
+        // `script-src` is deliberately absent: the App Router emits inline payloads (`self.__next_f.push`,
+        // 17 of them on the home page, measured 2026-11-20), so `script-src 'self'` breaks hydration;
+        // a nonce requires per-request middleware, and middleware.ts is deliberately deleted. Claiming
+        // `script-src` here without a nonce would be theatre. `frame-ancestors` duplicates
+        // X-Frame-Options for browsers that only honour the modern directive.
+        {
+          key: "Content-Security-Policy",
+          value: "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        },
       ],
     },
     {
