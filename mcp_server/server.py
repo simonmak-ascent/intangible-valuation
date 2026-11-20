@@ -301,21 +301,23 @@ def valuation_goodwill_ppa(
 @mcp.tool(
     name='valuation_impairment',
     title='Impairment Testing',
-    description="Impairment testing: goodwill impairment and intangible impairment under US GAAP (ASC 350) or IFRS (IAS 36). Method selects the formula. Use for annual or triggering-event impairment testing; goodwill_impairment compares a reporting unit's carrying value with its fair value. To compute the initial goodwill or allocation use valuation_goodwill_ppa; for the underlying asset fair values use the relevant asset-type tool. Per method: goodwill_impairment needs carrying_value + fair_value (optional: reporting_unit, standard); intangible_impairment needs carrying_value (optional: fair_value, recoverable_amount, standard). fair_value is required for ASC350; recoverable_amount is required for IAS36. Only method is required; all other parameters are method-dependent — supply those the selected method names and omit the rest (defaults apply where defined). Rates and premiums are decimals (0.10 = 10%). Pure arithmetic: no I/O and no external calls, rounded to 2 decimals; parameters belonging to other methods are accepted and ignored. An unknown method, or a missing method-required parameter, returns an error instead of a value.",
+    description="Impairment testing: goodwill impairment and intangible impairment under US GAAP (ASC 350) or IFRS (IAS 36). Method selects the formula. Use for annual or triggering-event impairment testing; goodwill_impairment compares a reporting unit's carrying value with its fair value. To compute the initial goodwill or allocation use valuation_goodwill_ppa; for the underlying asset fair values use the relevant asset-type tool. Per method: goodwill_impairment needs carrying_value + fair_value (optional: reporting_unit, standard, value_in_use, costs_to_sell); intangible_impairment needs carrying_value (optional: fair_value, recoverable_amount, standard). intangible_impairment: fair_value is required for ASC350, recoverable_amount for IAS36. goodwill_impairment takes fair_value under either standard and ignores recoverable_amount; its IAS 36 inputs are value_in_use and costs_to_sell. Only method is required; all other parameters are method-dependent — supply those the selected method names and omit the rest (defaults apply where defined). Rates and premiums are decimals (0.10 = 10%). Pure arithmetic: no I/O and no external calls, rounded to 2 decimals; parameters belonging to other methods are accepted and ignored. An unknown method, or a missing method-required parameter, returns an error instead of a value.",
     output_schema=OUTPUT_SCHEMA,
     annotations=COMMON_ANNOTATIONS,
     tags={'impairment', 'asc-350', 'ias-36', 'goodwill'},
 )
 def valuation_impairment(
-    method: Annotated[Literal['goodwill_impairment', 'intangible_impairment'], Field(description='Formula to apply. Options: goodwill_impairment = Impairment = carrying value - fair value (if positive).; intangible_impairment = Impairment of an intangible under ASC 350 or IAS 36.')],
+    method: Annotated[Literal['goodwill_impairment', 'intangible_impairment'], Field(description='Formula to apply. Options: goodwill_impairment = Impairment = max(0, carrying value - recoverable amount). IAS 36: recoverable amount is the HIGHER of fair value less costs to sell and value in use.; intangible_impairment = Impairment of an intangible under ASC 350 or IAS 36.')],
     carrying_value: Annotated[Optional[float], Field(description='Carrying value of the reporting unit or asset, in currency units.')] = None,
     fair_value: Annotated[Optional[float], Field(description='Fair value of the reporting unit or asset, in currency units.')] = None,
     reporting_unit: Annotated[Optional[str], Field(description='Reporting unit name (goodwill only).')] = None,
     standard: Annotated[Optional[Literal['ASC350', 'IAS36']], Field(description='Accounting standard: ASC350 for US GAAP, IAS36 for IFRS.')] = None,
+    value_in_use: Annotated[Optional[float], Field(description='IAS 36 value in use, in currency units. Recoverable amount is the higher of this and fair value less costs to sell.')] = None,
+    costs_to_sell: Annotated[Optional[float], Field(description='IAS 36 costs to sell, deducted from fair value. Default 0.')] = None,
     recoverable_amount: Annotated[Optional[float], Field(description='Recoverable amount (IAS 36), in currency units.')] = None,
 ) -> dict:
     """Impairment testing: goodwill impairment and intangible impairment under US GAAP (ASC 350) or IFRS (IAS 36)."""
-    return call_tool('valuation_impairment', {'method': method, 'carrying_value': carrying_value, 'fair_value': fair_value, 'reporting_unit': reporting_unit, 'standard': standard, 'recoverable_amount': recoverable_amount})
+    return call_tool('valuation_impairment', {'method': method, 'carrying_value': carrying_value, 'fair_value': fair_value, 'reporting_unit': reporting_unit, 'standard': standard, 'value_in_use': value_in_use, 'costs_to_sell': costs_to_sell, 'recoverable_amount': recoverable_amount})
 
 @mcp.tool(
     name='valuation_royalty_analysis',

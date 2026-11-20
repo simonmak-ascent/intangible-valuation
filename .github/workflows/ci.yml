@@ -12,6 +12,9 @@ permissions:
 jobs:
   test:
     runs-on: [self-hosted, apg-ci-04]
+    # A hung job otherwise inherits the 6-hour default: a `next build` once sat 31 minutes at 0% CPU
+    # waiting on Google Fonts, and `gh pr checks --watch` waits it out. This suite takes under 2.
+    timeout-minutes: 25
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
@@ -48,6 +51,18 @@ jobs:
 
       - name: Enforce coverage threshold
         run: coverage report --fail-under=85
+
+      # The npm half of this repository has gated on severity since #64; this half had no advisory
+      # check at all, and no lockfile either — `pip install -e .` resolves whatever PyPI serves that
+      # day, on a self-hosted runner. `--local` audits the interpreter this job just installed into,
+      # which is the environment the tests ran against, so it needs no separate resolver.
+      # Deliberately after the test run: installing pip-audit must not perturb the environment pytest used.
+      - name: Audit Python dependencies for known vulnerabilities
+        run: |
+          # Pinned: this runs on the self-hosted control node, and an unpinned install executes a
+          # version nobody reviewed. 2.10.1 is the one measured against this tree.
+          python -m pip install --quiet "pip-audit==2.10.1"
+          pip-audit --local
 
       - name: Verify build
         run: |

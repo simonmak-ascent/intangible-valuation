@@ -1,12 +1,52 @@
 import type { Metadata } from "next";
-import { Open_Sans, Titillium_Web, Raleway, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { AppShell } from "@/components/layout/AppShell";
 import "@/app/globals.css";
 
-const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", display: "swap" });
-const titillium = Titillium_Web({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-titillium", display: "swap" });
-const raleway = Raleway({ subsets: ["latin"], variable: "--font-raleway", display: "swap" });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap" });
+/**
+ * Fonts are vendored, not fetched. These four families used to come from `next/font/google`, which
+ * downloads them during `next build` — so the build opened TLS to Google and, on 2026-11-18, a
+ * Quality Gate job sat 31 minutes at 0% CPU holding four ESTABLISHED sockets to a Google edge before
+ * anyone noticed. A build must not depend on a third party being reachable, and the seven woff2 files
+ * here are the latin subset of the same families at the same weights, so rendering is unchanged.
+ *
+ * The variable families carry their axis range in `weight`; Titillium Web is static and ships the
+ * four weights the stylesheet asks for — 400, 600, 700, and 900 for `font-black` in the landing hero.
+ */
+const openSans = localFont({
+  src: "../../app/fonts/open-sans-300-800.woff2",
+  weight: "300 800",
+  style: "normal",
+  variable: "--font-open-sans",
+  display: "swap",
+});
+const titillium = localFont({
+  src: [
+    { path: "../../app/fonts/titillium-web-400.woff2", weight: "400", style: "normal" },
+    { path: "../../app/fonts/titillium-web-600.woff2", weight: "600", style: "normal" },
+    { path: "../../app/fonts/titillium-web-700.woff2", weight: "700", style: "normal" },
+    // The landing hero uses `font-black`, and `globals.css` forces `font-serif` on h1–h4, so 900 is
+    // asked for. Without this the browser synthesises it from 700 — the reason to check the weights
+    // the stylesheet uses rather than the weights a family happens to ship.
+    { path: "../../app/fonts/titillium-web-900.woff2", weight: "900", style: "normal" },
+  ],
+  variable: "--font-titillium",
+  display: "swap",
+});
+const raleway = localFont({
+  src: "../../app/fonts/raleway-100-900.woff2",
+  weight: "100 900",
+  style: "normal",
+  variable: "--font-raleway",
+  display: "swap",
+});
+const jetbrainsMono = localFont({
+  src: "../../app/fonts/jetbrains-mono-100-800.woff2",
+  weight: "100 800",
+  style: "normal",
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "Intangible Asset Valuation — The Authority", template: "%s | Intangible Valuation" },

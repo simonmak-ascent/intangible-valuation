@@ -809,7 +809,26 @@ export const CATALOG: MethodDefinition[] = [
     complexity: "advanced",
     mcpTool: "goodwill_impairment_test",
     pythonFunction: "intangible_valuation.advanced.impairment_testing.goodwill_impairment_test",
-    parameters: [n("carrying_value", "Carrying value"), n("fair_value", "Fair value")],
+    // IAS 36 needs the recoverable amount, which is the higher of fair value less costs to sell and
+    // value in use. The form offered only fair value, so a site user could not express the standard's
+    // own test; the library and the MCP surface both take these now.
+    parameters: [
+      n("carrying_value", "Carrying value"),
+      n("fair_value", "Fair value"),
+      n("value_in_use", "Value in use (IAS 36)", { required: false }),
+      n("costs_to_sell", "Costs to sell (IAS 36)", { required: false }),
+      {
+        name: "standard",
+        type: "string",
+        required: false,
+        default: "ASC350",
+        description: "Standard: ASC350 or IAS36",
+        options: [
+          { label: "ASC 350 (US GAAP)", value: "ASC350" },
+          { label: "IAS 36 (IFRS)", value: "IAS36" },
+        ],
+      },
+    ],
   },
   {
     slug: "intangible-impairment-test",
@@ -824,7 +843,7 @@ export const CATALOG: MethodDefinition[] = [
       n("carrying_value", "Carrying value"),
       n("fair_value", "Fair value (ASC 350)", { required: false }),
       n("recoverable_amount", "Recoverable amount (IAS 36)", { required: false }),
-      { name: "standard", type: "string", required: false, default: "ASC350", description: "Standard: ASC350 or IAS36" },
+      { name: "standard", type: "string", required: false, default: "ASC350", description: "Standard: ASC350 or IAS36", options: [{ label: "ASC 350 (US GAAP)", value: "ASC350" }, { label: "IAS 36 (IFRS)", value: "IAS36" }] },
     ],
   },
   {

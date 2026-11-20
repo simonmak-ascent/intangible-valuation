@@ -13,6 +13,27 @@ interface CalculatorFormProps {
   onCalculate: (params: Record<string, unknown>, stage: BusinessStage) => Promise<ValuationResult>;
 }
 
+/**
+ * How a parameter is rendered. Extracted so the decision can be asserted without a DOM — the form
+ * used to fall through to `<input type="number">` for every type it did not name, and a `string`
+ * parameter then accepted nothing: the browser rejects "IAS36" in a number input, so the standard
+ * was never sent and the calculation silently ran as ASC 350.
+ */
+export type FieldKind = "boolean" | "number-array" | "json" | "select" | "text" | "number";
+
+export function fieldKind(param: MethodParameter): FieldKind {
+  if (param.type === "boolean") return "boolean";
+  if (param.type === "number[]") return "number-array";
+  if (param.type === "json") return "json";
+  if (param.type === "string") return param.options && param.options.length > 0 ? "select" : "text";
+  if (param.type === "number" || param.type === "integer") return "number";
+  // Exhaustive: a new member of MethodParameter["type"] fails `tsc` here instead of silently
+  // rendering a number input for a value it cannot hold — which is the defect this function exists
+  // to prevent, reintroduced one union member at a time.
+  const unhandled: never = param.type;
+  return unhandled;
+}
+
 export function CalculatorForm({
   methodSlug,
   methodName,
@@ -93,44 +114,55 @@ export function CalculatorForm({
               {param.required && <span className="text-red-500 ml-1">*</span>}
             </label>
 
-            {param.type === "boolean" ? (
-              <select
-                value={formValues[param.name] || "true"}
-                onChange={(e) => setFormValues((prev) => ({ ...prev, [param.name]: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
-            ) : param.type === "number[]" ? (
-              <input
-                type="text"
-                placeholder="e.g., 1000000, 1100000, 1210000"
-                value={formValues[param.name] || ""}
-                onChange={(e) => setFormValues((prev) => ({ ...prev, [param.name]: e.target.value }))}
-                required={param.required}
-                className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
-              />
-            ) : param.type === "json" ? (
-              <input
-                type="text"
-                placeholder='e.g., {"key": "value"}'
-                value={formValues[param.name] || ""}
-                onChange={(e) => setFormValues((prev) => ({ ...prev, [param.name]: e.target.value }))}
-                required={param.required}
-                className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
-              />
-            ) : (
-              <input
-                type="number"
-                step={param.type === "integer" ? "1" : "0.01"}
-                placeholder={param.description}
-                value={formValues[param.name] || ""}
-                onChange={(e) => setFormValues((prev) => ({ ...prev, [param.name]: e.target.value }))}
-                required={param.required}
-                className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
-              />
-            )}
+            {(() => {
+              const kind = fieldKind(param);
+              const common = {
+                value: formValues[param.name] || "",
+                onChange: (e: { target: { value: string } }) =>
+                  setFormValues((prev) => ({ ...prev, [param.name]: e.target.value })),
+                required: param.required,
+                className:
+                  "w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono",
+              };
+
+              if (kind === "boolean") {
+                return (
+                  <select {...common} value={formValues[param.name] || "true"}>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                );
+              }
+
+              if (kind === "select") {
+                // A fixed domain gets a select: the impairment `standard` is ASC350 or IAS36, and a
+                // free-text field turns a typo into a pydantic pattern error at the server.
+                return (
+                  <select {...common}>
+                    <option value="">Choose…</option>
+                    {(param.options ?? []).map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                );
+              }
+
+              if (kind === "text") {
+                return <input type="text" placeholder={param.description} {...common} />;
+              }
+
+              if (kind === "number-array") {
+                return <input type="text" placeholder="e.g., 1000000, 1100000, 1210000" {...common} />;
+              }
+
+              if (kind === "json") {
+                return <input type="text" placeholder='e.g., {"key": "value"}' {...common} />;
+              }
+
+              return <input type="number" step={param.type === "integer" ? "1" : "0.01"} placeholder={param.description} {...common} />;
+            })()}
 
             <p className="text-xs text-neutral-400 mt-1">{param.description}</p>
           </div>

@@ -85,3 +85,21 @@ def test_no_method_accepts_an_empty_call_silently(tool: dict) -> None:
             continue  # the documented "requires parameter" / validation path
         except (AttributeError, TypeError, KeyError) as exc:  # pragma: no cover - the defect
             pytest.fail(f"{tool['name']}/{method['key']} raised {type(exc).__name__}: {exc}")
+
+
+def test_goodwill_impairment_forwards_the_ias36_parameters() -> None:
+    """The surface-side regression: `value_in_use` was absent from the `opt` map, so an IAS 36 call
+    could only ever return the fair-value comparison. The structural tests pass with the mapping
+    absent — this one does not."""
+    result = ts.call_tool(
+        "valuation_impairment",
+        {
+            "method": "goodwill_impairment",
+            "carrying_value": 1_000,
+            "fair_value": 800,
+            "value_in_use": 1_200,
+            "standard": "IAS36",
+        },
+    )
+    assert result["value"] == 0.0
+    assert result["assumptions"]["value_in_use"] == 1_200

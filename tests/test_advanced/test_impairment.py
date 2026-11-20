@@ -60,6 +60,51 @@ class TestGoodwillImpairment:
         result = goodwill_impairment_test(50_000_000, 40_000_000)
         assert "ASC350" in result.method
 
+    def test_ias36_uses_the_higher_of_fair_value_and_value_in_use(self):
+        # IAS 36.18. Fair value is below carrying value here, which the old implementation used as the
+        # recoverable amount — it reported a 2m impairment where the standard says there is none,
+        # because value in use (12m) exceeds carrying value.
+        result = goodwill_impairment_test(
+            carrying_value=10_000_000,
+            fair_value=8_000_000,
+            value_in_use=12_000_000,
+            standard="IAS36",
+        )
+        assert result.value == 0.0
+        assert result.assumptions["impaired"] is False
+
+    def test_ias36_impairment_is_measured_against_the_higher_component(self):
+        # Both components are below carrying value; recoverable amount is the higher of the two, so
+        # the impairment is 3m, not the 4m that fair value alone would give.
+        result = goodwill_impairment_test(
+            carrying_value=10_000_000,
+            fair_value=6_000_000,
+            value_in_use=7_000_000,
+            standard="IAS36",
+        )
+        assert result.value == 3_000_000.0
+        assert result.assumptions["value_in_use"] == 7_000_000
+
+    def test_ias36_applies_costs_to_sell_to_the_fair_value_leg(self):
+        # FV less costs to sell is 5.5m, value in use is 7m: recoverable is 7m, impairment 3m.
+        result = goodwill_impairment_test(
+            carrying_value=10_000_000,
+            fair_value=6_000_000,
+            costs_to_sell=500_000,
+            value_in_use=7_000_000,
+            standard="IAS36",
+        )
+        assert result.value == 3_000_000.0
+        assert result.assumptions["costs_to_sell"] == 500_000
+
+    def test_ias36_without_value_in_use_says_so_in_the_steps(self):
+        # Callers that only hold a fair value still work, but the working must not imply the
+        # comparison was made.
+        result = goodwill_impairment_test(carrying_value=10_000_000, fair_value=8_000_000, standard="IAS36")
+        assert result.value == 2_000_000.0
+        step = next(s for s in result.steps if s["step"] == 5)
+        assert "value in use not supplied" in step["description"]
+
     def test_invalid_standard_raises(self):
         with pytest.raises(ValueError):
             goodwill_impairment_test(50_000_000, 40_000_000, standard="INVALID")
@@ -317,3 +362,17 @@ class TestCGUImpairment:
         )
         assert "allocation" in result.assumptions
         assert len(result.assumptions["allocation"]) == 3
+
+    def test_negative_costs_to_sell_raises(self):
+        # `ge=0` on GoodwillImpairmentInput.costs_to_sell is the control: a negative cost would
+        # otherwise *add* to the fair-value leg and understate the impairment.
+        with pytest.raises(ValueError):
+            goodwill_impairment_test(10_000_000, 8_000_000, costs_to_sell=-1, standard="IAS36")
+
+    def test_costs_above_fair_value_cannot_impair_more_than_the_carrying_value(self):
+        # The clamp at 0: unclamped, FV less costs to sell is negative and the impairment exceeds the
+        # carrying value, writing the asset below zero.
+        result = goodwill_impairment_test(
+            carrying_value=1_000, fair_value=100, costs_to_sell=500, standard="IAS36"
+        )
+        assert result.value == 1_000.0

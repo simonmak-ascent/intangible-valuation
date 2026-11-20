@@ -46,6 +46,7 @@ jobs:
   deploy:
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: [self-hosted, apg-ecs-01]
+    timeout-minutes: 15
     # One node, eight runner slots: two concurrent swaps of the same port-bound container leave the
     # old one stopped behind a Created container holding the name.
     concurrency:

@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from api.index import HARDCODED, ROUTES, _normalize_slug, _resolve_valuation_fn, resolve_method
+from api.index import _LIB_FUNCTIONS, ROUTES, _normalize_slug, _resolve_valuation_fn, resolve_method
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPO_ROOT / "lib" / "valuation" / "catalog.ts"
@@ -80,8 +80,21 @@ class TestCatalogTraceability:
         slugs = _catalog_slugs()
         assert len(slugs) == len(set(slugs)), "Duplicate catalogued slugs detected"
 
-    def test_hardcoded_fallbacks_present(self) -> None:
-        assert len(HARDCODED) >= 11, "Expected at least 11 hardcoded fallback methods"
+    def test_every_route_is_a_library_function(self) -> None:
+        # There used to be eleven hardcoded re-implementations alongside the library, and this test
+        # asserted they existed. Every one was shadowed by a library function of the same slug, so a
+        # container that failed to import the library fell back to serving different arithmetic under
+        # the same endpoints. The fallback is gone and the module refuses to import without the
+        # library. `set(ROUTES) == set(_LIB_FUNCTIONS)` would be a tautology (ROUTES is a copy of it),
+        # so this asserts what can actually break: every route is callable and the count is the
+        # documented surface.
+        assert all(callable(fn) for fn in ROUTES.values())
+        assert len(ROUTES) == 68
+
+    def test_the_route_table_is_not_shared_with_the_library_dict(self) -> None:
+        # `ROUTES = dict(...)` is a copy precisely so a later mutation (the Monte-Carlo wrappers do
+        # replace entries) cannot corrupt the library's own table.
+        assert ROUTES is not _LIB_FUNCTIONS
 
 
 class TestMonteCarloResolver:

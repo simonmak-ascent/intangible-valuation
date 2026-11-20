@@ -1,11 +1,12 @@
 """Vercel serverless API for intangible valuation.
 
-All 88 valuation methods accessible via POST /api/{method-slug}.
+All 68 valuation methods accessible via POST /api/{method-slug}.
 Imports the intangible_valuation Python package (must be in requirements.txt).
-Falls back to hardcoded methods when package is not installed.
+There is no fallback: if that import fails the module raises at load, because a second set of
+formulas serving the same endpoints is worse than a container that refuses to start.
 """
 
-import inspect, json, logging, math, uuid
+import inspect, json, logging, uuid
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
@@ -207,142 +208,15 @@ try:
         "profit-split-method": _psm,
         "analytical-method-valuation": _amv,
     }
-except ImportError:
-    pass
-
-
-# ---- Hardcoded fallback methods -------------------------------------------
-def _h_present_value(future_value, discount_rate, periods):
-    pv = future_value / ((1 + discount_rate) ** periods)
-    return {
-        "value": round(pv, 2),
-        "method": "Present Value",
-        "formula_reference": "PV = FV / (1+r)^n",
-        "steps": [f"PV = FV / (1 + r)^n", f"PV = {future_value} / (1 + {discount_rate})^{periods}", f"PV = ${pv:,.2f}"],
-        "assumptions": ["Discount rate constant", "Single cash flow at period n"],
-    }
-
-
-def _h_future_value(present_value, discount_rate, periods):
-    fv = present_value * ((1 + discount_rate) ** periods)
-    return {"value": round(fv, 2), "method": "Future Value", "formula_reference": "FV = PV * (1+r)^n"}
-
-
-def _h_annuity_pv(payment, discount_rate, periods):
-    pv = payment * (1 - (1 + discount_rate) ** -periods) / discount_rate if discount_rate > 0 else payment * periods
-    return {"value": round(pv, 2), "method": "Annuity PV", "formula_reference": "PV = PMT * [1-(1+r)^(-n)] / r"}
-
-
-def _h_perpetuity_pv(payment, discount_rate):
-    return {"value": round(payment / discount_rate, 2), "method": "Perpetuity PV", "formula_reference": "PV = PMT / r"}
-
-
-def _h_terminal_value(final_year_cashflow, perpetual_growth_rate, discount_rate):
-    tv = final_year_cashflow * (1 + perpetual_growth_rate) / (discount_rate - perpetual_growth_rate)
-    return {
-        "value": round(tv, 2),
-        "method": "Terminal Value (Gordon Growth)",
-        "formula_reference": "TV = FCF*(1+g)/(r-g)",
-    }
-
-
-def _h_build_up(risk_free_rate, equity_risk_premium, size_premium=0, industry_risk_premium=0, specific_risk_premium=0):
-    rate = risk_free_rate + equity_risk_premium + size_premium + industry_risk_premium + specific_risk_premium
-    return {
-        "value": round(rate, 4),
-        "method": "Build-Up Discount Rate",
-        "formula_reference": "r = Rf + ERP + Size + Industry + Specific",
-    }
-
-
-def _h_capm(risk_free_rate, beta, market_return):
-    rate = risk_free_rate + beta * (market_return - risk_free_rate)
-    return {"value": round(rate, 4), "method": "CAPM", "formula_reference": "r = Rf + Beta*(Rm-Rf)"}
-
-
-def _h_wacc(equity_value, debt_value, cost_of_equity, cost_of_debt, tax_rate):
-    total = equity_value + debt_value
-    rate = (equity_value / total) * cost_of_equity + (debt_value / total) * cost_of_debt * (1 - tax_rate)
-    return {"value": round(rate, 4), "method": "WACC", "formula_reference": "WACC = (E/V)*Re + (D/V)*Rd*(1-Tc)"}
-
-
-def _h_rfr(revenue_projections, royalty_rate, discount_rate, tax_rate, useful_life, tab_enabled=True):
-    pv = 0.0
-    steps = []
-    for t, rev in enumerate(revenue_projections, 1):
-        royalty = rev * royalty_rate
-        after_tax = royalty * (1 - tax_rate)
-        period_pv = after_tax / ((1 + discount_rate) ** t)
-        pv += period_pv
-        steps.append(
-            f"Period {t}: revenue=${rev:,.0f}, royalty=${royalty:,.0f}, after-tax=${after_tax:,.0f}, PV=${period_pv:,.0f}"
-        )
-    tab = 1.0
-    if tab_enabled and tax_rate > 0:
-        af = sum(1 / ((1 + discount_rate) ** t) for t in range(1, useful_life + 1))
-        tab = 1 / (1 - (tax_rate * af / useful_life))
-    value = pv * tab
-    steps.append(f"PV before TAB: ${pv:,.2f}, TAB factor: {tab:.4f}")
-    return {
-        "value": round(value, 2),
-        "method": "Relief from Royalty",
-        "formula_reference": "Ch 4: RFR with TAB",
-        "steps": steps,
-        "assumptions": ["Arm's length royalty rate", "Reasonable revenue projections"],
-        "pv_before_tab": round(pv, 2),
-        "tab_factor": round(tab, 4),
-    }
-
-
-def _h_growing_annuity_pv(payment, discount_rate, growth_rate, periods):
-    if discount_rate == growth_rate:
-        pv = payment * periods / (1 + discount_rate)
-    else:
-        pv = payment * (1 - ((1 + growth_rate) / (1 + discount_rate)) ** periods) / (discount_rate - growth_rate)
-    return {
-        "value": round(pv, 2),
-        "method": "Growing Annuity PV",
-        "formula_reference": "PV = PMT * [1-((1+g)/(1+r))^n]/(r-g)",
-    }
-
-
-def _h_mpeem(
-    revenue, ebitda_margin, ebitda_growth, working_capital_pct, capex_pct, tax_rate, discount_rate, useful_life
-):
-    pv = 0.0
-    steps = []
-    rev = revenue
-    for t in range(1, useful_life + 1):
-        ebitda = rev * ebitda_margin
-        wc_delta = rev * ebitda_margin * working_capital_pct
-        capex = rev * capex_pct
-        fcf = (ebitda - wc_delta - capex) * (1 - tax_rate)
-        period_pv = fcf / ((1 + discount_rate) ** t)
-        pv += period_pv
-        steps.append(f"Period {t}: revenue=${rev:,.0f}, EBITDA=${ebitda:,.0f}, FCF=${fcf:,.0f}, PV=${period_pv:,.0f}")
-        rev *= 1 + ebitda_growth
-    return {
-        "value": round(pv, 2),
-        "method": "MPEEM",
-        "formula_reference": "Ch 4: Multi-Period Excess Earnings Method",
-        "steps": steps,
-        "assumptions": ["Earnings attributable to the asset", "Contributory asset charges applied"],
-    }
-
-
-HARDCODED = {
-    "present-value": _h_present_value,
-    "future-value": _h_future_value,
-    "annuity-pv": _h_annuity_pv,
-    "perpetuity-pv": _h_perpetuity_pv,
-    "terminal-value": _h_terminal_value,
-    "build-up-discount-rate": _h_build_up,
-    "capm": _h_capm,
-    "wacc": _h_wacc,
-    "relief-from-royalty": _h_rfr,
-    "growing-annuity-pv": _h_growing_annuity_pv,
-    "mpeem": _h_mpeem,
-}
+except ImportError as exc:  # pragma: no cover - a broken container must not answer
+    # There used to be `pass` here, and eleven hardcoded re-implementations of library functions
+    # underneath it. A container that could not import `intangible_valuation` therefore kept serving
+    # a second, unaudited set of formulas — the same endpoints answering with different arithmetic
+    # depending on how the image was built. All eleven are shadowed by the library (`ROUTES` had 68
+    # keys either way), so nothing is lost by refusing to start: a broken container fails loudly.
+    raise RuntimeError(
+        "the valuation library is not importable, so this API cannot serve its documented surface"
+    ) from exc
 
 
 def _to_plain(result):
@@ -354,7 +228,7 @@ def _to_plain(result):
     return {"value": result, "method": "unknown"}
 
 
-ROUTES = {**HARDCODED, **_LIB_FUNCTIONS}
+ROUTES = dict(_LIB_FUNCTIONS)
 
 
 def _to_float_value(result) -> float:
@@ -482,6 +356,29 @@ def calculate_response(func: callable, body: dict) -> tuple[int, dict]:
         return 400, {"error": "Calculation failed", "reference": ref}
 
 
+def health_response(routes: dict | None = None) -> tuple[int, dict]:
+    """The probe's answer, separated from the socket so it can be tested.
+
+    The probe used to be a bare TCP connect: it passed while the process was up and the surface was
+    empty, which is the state this service spent a release in when its library import failed silently.
+    A rollout requires exactly 200 on this path before it replaces a live container, so a 503 here is
+    what refuses to swap a working container for a hollow one.
+
+    With the import-time `RuntimeError` in place a live process always has 68 routes, so the 503 arm is
+    a guard for the case where the table is emptied some other way — and it is asserted in
+    `tests/test_api/test_health.py`, because a gate never observed failing is unproven.
+    """
+    table = ROUTES if routes is None else routes
+    if not table:
+        return 503, {"status": "degraded", "reason": "no routes loaded"}
+    return 200, {"status": "ok", "methods": len(table)}
+
+
+def is_health_path(path: str) -> bool:
+    """True for the spellings a probe may use; the rollout takes the path from `container.json`."""
+    return urlparse(path).path.rstrip("/") in ("/health", "/api/health")
+
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
@@ -512,7 +409,6 @@ class handler(BaseHTTPRequestHandler):
                     "error": f"Unknown method: '{method}'",
                     "available": sorted(ROUTES.keys()),
                     "library_methods": len(_LIB_FUNCTIONS),
-                    "hardcoded_methods": len(HARDCODED),
                 },
             )
             return
@@ -521,6 +417,13 @@ class handler(BaseHTTPRequestHandler):
         self._send(code, response)
 
     def do_GET(self):
+        # A health path the rollout can fail on. See `health_response` for why this is HTTP rather
+        # than the TCP probe it replaced.
+        if is_health_path(self.path):
+            code, body = health_response()
+            self._send(code, body)
+            return
+
         method = resolve_method(self.path, self.headers, None)
         if method:
             self._send(200, {"endpoint": method, "available": sorted(ROUTES.keys())})
@@ -532,7 +435,6 @@ class handler(BaseHTTPRequestHandler):
                     "endpoints": sorted(ROUTES.keys()),
                     "total_methods": len(ROUTES),
                     "library_methods": len(_LIB_FUNCTIONS),
-                    "hardcoded_methods": len(HARDCODED),
                     "docs": "https://intangible-valuation.ascent-partners.com",
                 },
             )
