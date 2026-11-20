@@ -29,9 +29,9 @@ on:
         required: true
       containers:
         description: >-
-          Container names from container.json, comma separated. Only the web container is
-          dispatchable today: -api and -mcp still pin an image older than the one running, and the
-          reconciler would hold that older image once the pin is written.
+          Container names from container.json, comma separated. Pass them explicitly: the default
+          here is the web container, whose pin this change does not move. For the engine pin use
+          intangible-valuation-api,intangible-valuation-mcp.
         required: false
         default: "intangible-valuation"
       dry_run:

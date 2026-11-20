@@ -28,7 +28,7 @@
       "name": "intangible-valuation-api",
       "docker_name": "iv-api",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:ab9116abf8802b7984afc13de2701b8b2bde122eb8ac3a6965c0de182419f342",
       "port": 8061,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
@@ -47,7 +47,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Python WSGI app (api.index:handler) behind pylaunch, served from the node's own venv and work directory copied to the same paths so shebangs resolve. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The reconciler and rollout probe HTTP on /api/health, which answers 503 when the route table is empty; the ALB target-group health check is declared in apg-infra and is not driven by this file. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
+      "notes": "Python WSGI app (api.index:handler) behind pylaunch, built by Dockerfile.api from this tree: pip install -c constraints-api.txt . into the base image's own interpreter, with api/ and pylaunch.py copied to /app. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The reconciler and rollout probe HTTP on /api/health, which answers 503 when the route table is empty; the ALB target-group health check is declared in apg-infra and is not driven by this file. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
       "cmd": [
         "sh",
         "-c",
@@ -58,7 +58,7 @@
       "name": "intangible-valuation-mcp",
       "docker_name": "iv-mcp",
       "repo": "simonmak-ascent/intangible-valuation",
-      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:b64b89eb6017d1ef01a0aaae568c5767f79b0266a9efbf51edea9e4fdaeb8919",
+      "image": "ghcr.io/simonmak-ascent/intangible-valuation@sha256:ab9116abf8802b7984afc13de2701b8b2bde122eb8ac3a6965c0de182419f342",
       "port": 8060,
       "hosts": [
         "intangible-valuation.ascent-partners.com"
@@ -77,7 +77,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile is the stdio MCP for the registry and is unrelated. Built from the node's active slot (green) \u2014 the first attempt used blue and shipped an older release.",
+      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile at the root is the stdio MCP for the registry and is unrelated. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
       "cmd": [
         "sh",
         "-c",
