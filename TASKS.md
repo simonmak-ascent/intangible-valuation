@@ -1,17 +1,21 @@
 # Execution list — deploy path and web image, 2026-11-20
 
+Statuses: `done` · `ready` · `blocked by <id>` · `awaiting you`.
+
 | # | task | status | verify |
 |---|---|---|---|
-| 1.1 | `deploy-digest.yml`: `packages: write`, GHCR login, pre-pull before the rollout, unconditional `--publish-pointer` | done | `actionlint` exit 0; `--publish-pointer` present, `publish_pointer` input absent |
-| 1.2 | pointer assertion: the `desired-<container>` tag resolves to the dispatched digest | done | assertion step gated on `!inputs.dry_run`, same as the converge step |
+| 1.1 | `deploy-digest.yml`: `packages: write`, GHCR login, pre-pull before the rollout, unconditional `--publish-pointer`; and the stale pointer prose corrected in the workflow header and `AGENTS.md` | done | `actionlint` exit 0; `--publish-pointer` present, `publish_pointer` input absent; `deploy-digest.yml:14-36` and `AGENTS.md:139-143` describe per-container tags |
+| 1.2 | pointer assertion: the `desired-<container>` tag resolves to the dispatched digest | done | deploy run 44723484830 printed `pointer ok` for both roles; GHCR `HEAD` on both tags returns 200 with digest `711b9b7f` |
 | 1.3 | `containers` required, no default; refuse a dispatch naming one role of a shared-digest pair | done | extracted step: api alone exits 1 naming mcp; both exits 0 |
 | 1.4 | the job fails instead of skipping on a non-main ref | done | guard step first; job-level `if` absent |
 | 1.5 | `compliance.json` declares `kind: container`, `deploy-digest.yml`, the converge unit and two probes | done | `json.load` reports kind container; only the caller arm remains red |
-| 1.6 | health reports `IMAGE_DIGEST` when set, with the ambient-digest fixture in its tests | done | `IMAGE_DIGEST=sha256:ffff pytest tests/test_api/test_health.py` → 12 passed |
-| 2.1 | web image publishes again: remove the unused npm toolchain from the run stage | done | built image: `command -v npm` absent; trivy exit 0 where the dispatch failed on 12 HIGH |
+| 1.6 | health reports `IMAGE_DIGEST` when set, with the ambient-digest fixture in its tests | done | each node and the ALB answer `{"status":"ok","methods":68,"digest":…}`; `pytest tests/test_api/test_health.py` 12 passed, including the fixture and both digest cases |
+| 2.1 | web run stage: remove the unused npm toolchain, keep the layer honest about whiteouts | done | built image: `command -v npm` absent; trivy on that image exits 0 locally, where the dispatch failed on 12 HIGH |
 | 2.2 | pin the four `Dockerfile.web` base images by digest | done | `grep -c '^FROM .*@sha256:' Dockerfile.web` → 4 |
 | 2.3 | correct the web container's `notes` in `container.json` | done | no occurrence of the node-built provenance sentences |
-| 3.1 | one IAS 36 vocabulary: alias plus optional canonical parameter with mutual exclusion | done | both spellings post equal values; both-together and neither raise ValueError |
-| 4.1 | CSP directives that need no nonce, in `next.config.ts` | done | header `object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'` on the built image; `/`, `/zh`, `/hk`, `/calculator`, `/docs` all 200 |
-| 5.1 | delete the 11 local branches that are unmerged into `origin/main` | done | 11 archive tags verified against their tips; 10 branches deleted, `main` re-pointed at `origin/main` (64c56aa); manifest at `~/git/.branch-archive/manifest-2026-11-20.txt` |
+| 2.4 | web image rebuilt and published from this tree | awaiting you | the pinned web image (`247285a6`, revision `e858f50`, tag `20261120T044320`) is in GHCR, but the rebuild from this tree is not: on `apg-ecs-01` it cannot be exported (`docker save` → 12 KB; `save --platform` → "no suitable export target"), so the scan step (`.github/workflows/image.yml:150-176`) cannot read it. Registry evidence: 15 tags, and no web build tag after `20261120T044320` (the only later ones are `api-20261120T081622` and `api-20261120T102959`); the web container's own pointer `desired-intangible-valuation` is 404, where `-api`/`-mcp` → 200 with `711b9b7f`. Measurements: `HANDOVER-apg-infra.md` Item 6 (local working document, not tracked) |
+| 2.5 | pin and deploy the engine image that reports its own digest | done | both `desired-` tags resolve to `711b9b7f`; ecs-01/02/03 all run it; ALB `GET /api/health` carries the digest; `goodwill-impairment-test` with CV 1000 / FV 800 / VIU 1200 and `standard: IAS36` returns `0.0` |
+| 3.1 | one IAS 36 vocabulary: alias plus optional canonical parameter with mutual exclusion | done | live: `fair_value` 1000 with cost 50, so `disposal_costs` and `costs_to_sell` both return `{"value": 950.0}`; both-together and neither return 400; a payload missing `fair_value` returns 400 with `expected_params: ["fair_value","disposal_costs","costs_to_sell"]` |
+| 4.1 | CSP directives that need no nonce, in `next.config.ts` | done | on the image built from this tree: header `object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`; `/`, `/zh`, `/hk`, `/calculator`, `/docs` 200. Not served in production yet — the running web image predates it (2.4) |
+| 5.1 | delete the 11 local branches that are unmerged into `origin/main` | done | 10 branches deleted after tagging; `main` re-pointed at `origin/main` (tagged too); this branch is the 11th and goes after merge. Manifest: `~/git/.branch-archive/manifest-2026-11-20.txt` — 11 rows, one per tag, one of them `main` |
 | 5.2 | `HANDOVER.md` records the pointer mechanism and the assertion | done | `HANDOVER.md` names `--publish-pointer`, the pre-pull and the pointer assertion |
