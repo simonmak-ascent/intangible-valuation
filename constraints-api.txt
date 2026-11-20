@@ -1,0 +1,17 @@
+# Constraints for the API/MCP image (Dockerfile.api), generated 2026-11-20 from a built image:
+#   docker run --rm <image> pip freeze | grep -v '^intangible-valuation' | sort
+#
+# Why: `pip install .` from the tree pins the ENGINE to the commit, but resolves pydantic, numpy
+# and their transitive tree from the index at build time. pydantic decides the JSON every API
+# client sees (results serialize through model_dump(mode="json")), so two builds of one commit
+# could answer differently. The docs stage already carries constraints for the same reason
+# (constraints-docs.txt). Regenerate this file whenever the image's dependency set changes.
+#
+# Excludes the project itself: it is installed from the build context, not resolved.
+
+annotated-types==0.8.0
+numpy==2.5.5
+pydantic==2.14.4
+pydantic_core==2.50.5
+typing-inspection==0.4.5
+typing_extensions==4.16.0

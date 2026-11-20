@@ -1,19 +1,21 @@
 name: image
 
-# Build and publish the web application image.
+# Build and publish the container images: the web application (`Dockerfile.web`) and the Python
+# services (`Dockerfile.api`, which serves both `iv-api` and `iv-mcp`).
 #
 # Building needs a runner with **Docker socket access**. It runs on `apg-ecs-01` — a runner on
 # workforce-01 whose user is in the `docker` group. It must NOT run on the `apg-ci-04` control-node
 # runner, which has no docker socket by design (apg-infra OI-60): that failure mode was a 27-second
 # socket error, and before the runner existed it was a nine-minute silent queue.
 #
-# The first step checks for Docker so a misrouted job fails with a message instead of hanging.
+# The first step of each job checks for Docker so a misrouted job fails with a message instead of
+# hanging.
 
 on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Optional local image tag to push instead of building (name:stamp)"
+        description: "Optional local image tag to push instead of building (name:stamp). Applies to the web job only."
         required: false
         type: string
 
@@ -27,8 +29,8 @@ env:
 jobs:
   image:
     runs-on: [self-hosted, apg-ecs-01]
-    # The build fetches fonts and pip wheels. 45 minutes is generous for a cold build and still
-    # bounded; without it, the default is six hours.
+    # The build fetches pip wheels. 45 minutes is generous for a cold build and still bounded;
+    # without it, the default is six hours.
     timeout-minutes: 45
     steps:
       - name: Check the runner can reach Docker
@@ -39,7 +41,9 @@ jobs:
           fi
           echo "docker $(docker version --format '{{.Server.Version}}')"
 
-      - uses: actions/checkout@v7
+      # Pinned for the same reason the `image-api` job pins it: this job holds a docker socket and
+      # `packages: write`, so a moved tag is code execution with both.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: inputs.image == ''
 
       - name: Log in to GHCR
@@ -49,11 +53,16 @@ jobs:
 
       - name: Build and push
         id: build
+        env:
+          # Through `env:`, never interpolated into the script: `${{ inputs.image }}` is substituted
+          # before the shell parses, so a dispatch input of `$(...|sh)` would execute on a runner whose
+          # user is in the docker group — root on an application node, with GITHUB_TOKEN in scope.
+          SOURCE_IMAGE: ${{ inputs.image }}
         run: |
           set -eu
           repo="ghcr.io/${{ github.repository }}"
-          if [ -n "${{ inputs.image }}" ]; then
-            src="${{ inputs.image }}"
+          if [ -n "$SOURCE_IMAGE" ]; then
+            src="$SOURCE_IMAGE"
             case "$src" in *:*) ;; *) echo "image must be name:stamp (got $src)" >&2; exit 1 ;; esac
             dst="$repo:${src#*:}"
             docker tag "$src" "$dst"
@@ -75,6 +84,82 @@ jobs:
             echo ""
             echo "Pin it in \`container.json\` as \`image: $digest\`."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Scan the published image for known vulnerabilities
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          # A digest pin removes drift but also removes the patch signal: nothing else scans the OS
+          # packages or the frozen runtime set the container actually serves. `pip-audit --local` in
+          # ci.yml audits a different interpreter, so it cannot see either. Fail on HIGH and above.
+          if ! command -v trivy >/dev/null 2>&1; then
+            echo "::error::trivy is not installed on this runner; the CVE gate cannot run"
+            exit 1
+          fi
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress "$DIGEST"
+
+      - name: Log out
+        if: always()
+        run: docker logout ghcr.io || true
+
+  # The two Python services share one image (see Dockerfile.api). Until this job existed they ran a
+  # build made on a node from its own work tree, with no revision label and a digest pinned in
+  # `container.json` that no registry held — so the deployed engine drifted behind the repository and
+  # served the pre-#62 handler while the calculator offered the new IAS 36 field. Building it here
+  # puts the engine under the same disclosure as the site: a digest, a provenance label, and a pin.
+  image-api:
+    runs-on: [self-hosted, apg-ecs-01]
+    timeout-minutes: 30
+    steps:
+      - name: Check the runner can reach Docker
+        run: |
+          if ! docker version --format '{{.Server.Version}}' >/dev/null 2>&1; then
+            echo "::error::this runner has no Docker socket; the API image cannot be built here."
+            exit 1
+          fi
+
+      # Pinned to the same commit the vendored estate pipeline uses (estate-ci.yml), because this job
+      # runs with a docker socket and packages:write — a mutable action tag is the wrong trust shape
+      # for it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN_VALUE: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GH_TOKEN_VALUE" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push
+        id: build
+        run: |
+          set -eu
+          repo="ghcr.io/${{ github.repository }}"
+          dst="$repo:api-$(date -u +%Y%m%dT%H%M%S)"
+          docker build -f Dockerfile.api -t "$dst" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" .
+          docker push "$dst"
+          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$dst")"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          {
+            echo "### api image published"
+            echo ""
+            echo '```'
+            echo "$digest"
+            echo '```'
+            echo ""
+            echo "Pin it in \`container.json\` for both \`intangible-valuation-api\` and \`-mcp\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Scan the published image for known vulnerabilities
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          if ! command -v trivy >/dev/null 2>&1; then
+            echo "::error::trivy is not installed on this runner; the CVE gate cannot run"
+            exit 1
+          fi
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress "$DIGEST"
 
       - name: Log out
         if: always()

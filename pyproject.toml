@@ -153,6 +153,9 @@ known-first-party = ["api", "mcp_server"]
 [tool.ruff.lint.per-file-ignores]
 # Codegen/numbered scripts print progress to stdout by design.
 "scripts/*.py" = ["T201"]
+# The container entrypoint: its one line is the boot banner the process is expected to emit, not
+# debugging left in a library. It is the launcher the container command already invokes.
+"pylaunch.py" = ["T201"]
 # The hosted MCP dispatcher is a flat JSON-RPC switch; many returns are clearer than a table.
 "api/mcp.py" = ["PLR0911"]
 # Legacy calculator endpoint (Vercel BaseHTTPRequestHandler); the class name and
