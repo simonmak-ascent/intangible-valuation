@@ -27,7 +27,7 @@ export function Header() {
           <Link href="/docs" className="text-sm font-medium text-neutral-600 hover:text-primary-500 transition-colors">
             Docs
           </Link>
-          <Link href="/mcp" className="text-sm font-medium text-neutral-600 hover:text-primary-500 transition-colors">
+          <Link href="/developers/mcp" className="text-sm font-medium text-neutral-600 hover:text-primary-500 transition-colors">
             MCP
           </Link>
           <Link href="/skills" className="text-sm font-medium text-neutral-600 hover:text-primary-500 transition-colors">

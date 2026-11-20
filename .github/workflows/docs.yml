@@ -25,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Same constraints as the image's docs stage (Dockerfile.web), so this workflow builds the
+          # Same constraints as the image's docs stage (docker/Dockerfile.web), so this workflow builds the
           # site that ships rather than a differently-resolved one.
-          python -m pip install -c constraints-docs.txt -e ".[docs]"
+          python -m pip install -c docker/constraints-docs.txt -e ".[docs]"
 
       - name: Build docs
         run: python -m mkdocs build --strict

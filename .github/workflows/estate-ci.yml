@@ -2,7 +2,7 @@
 #
 # The estate's rule is that a repository calls this workflow and never copies it — but a
 # cross-repository `uses:` can only reach a repository that is public, and `apg-infra` is private.
-# Vendoring is the fallback `.deploy/README.md` already documents for exactly this case. Four changes
+# Vendoring is the fallback the estate's container-cd workflow documents for exactly this case. Four changes
 # from the original: two forced by the copy, two by this repository's own stack.
 #   * `runs-on: ubuntu-latest` -> `[self-hosted, apg-ci-04]`, because this account has no hosted
 #     minutes (standards.md: CI runs inside the estate).

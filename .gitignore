@@ -130,3 +130,10 @@ playwright-report/
 
 # turbo
 .turbo
+
+# root hygiene: build caches that are regenerated, never committed
+.difflens/
+.cache/
+
+# all working documents live here, untracked
+.worknotes/

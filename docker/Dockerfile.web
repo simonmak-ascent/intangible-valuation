@@ -43,7 +43,7 @@ COPY src ./src
 COPY mcp_server ./mcp_server
 COPY mkdocs.yml ./
 COPY docs ./docs
-COPY constraints-docs.txt ./
+COPY docker/constraints-docs.txt ./
 # -c constraints-docs.txt pins the whole transitive set, not just the three top-level packages: the
 # packages that actually decide the rendered HTML (mkdocstrings-python, mkdocs-autorefs,
 # pymdown-extensions, Markdown) are transitive, so pinning only mkdocs/mkdocs-material/mkdocstrings

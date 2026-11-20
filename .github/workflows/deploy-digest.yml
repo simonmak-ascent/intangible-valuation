@@ -4,7 +4,7 @@ name: deploy-digest
 # already installed on every node at /opt/container-deploy — the same script container-cd.yml runs.
 #
 # Why not a caller for apg-infra's container-cd.yml: apg-infra is private, and GitHub refuses a
-# cross-repository workflow_call into a private repository (.deploy/README.md records this).
+# cross-repository workflow_call into a private repository, recorded in apg-infra's container-cd header.
 # Why not a vendored copy: the payload is on the nodes, and a second copy would be a second source
 # of truth for how a container is swapped.
 #

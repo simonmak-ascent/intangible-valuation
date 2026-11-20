@@ -22,7 +22,7 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Next.js standalone release (node server.js) built by Dockerfile.web from this tree; the dependency closure is pnpm-lock.yaml and no package manager is installed in the run stage. uid 1001 is declared by the Dockerfile and enforced by run.user, not inherited from a node slot. The env file carries only PORT, and no secret is configured for it: no AUTH_SECRET and no STRIPE_* since the account surface was deleted on 2026-11-19, and no database of any kind since SurrealDB was removed the same day - the benchmark records are a bundled file. Rollout is deploy-digest.yml: it installs this manifest and rollout.sh swaps by digest, publishing the per-container desired-intangible-valuation pointer that peers converge from."
+      "notes": "Next.js standalone release (node server.js) built by docker/Dockerfile.web from this tree; the dependency closure is pnpm-lock.yaml and no package manager is installed in the run stage. uid 1001 is declared by the Dockerfile and enforced by run.user, not inherited from a node slot. The env file carries only PORT, and no secret is configured for it: no AUTH_SECRET and no STRIPE_* since the account surface was deleted on 2026-11-19, and no database of any kind since SurrealDB was removed the same day - the benchmark records are a bundled file. Rollout is deploy-digest.yml: it installs this manifest and rollout.sh swaps by digest, publishing the per-container desired-intangible-valuation pointer that peers converge from."
     },
     {
       "name": "intangible-valuation-api",
@@ -47,11 +47,11 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Python WSGI app (api.index:handler) behind pylaunch, built by Dockerfile.api from this tree: pip install -c constraints-api.txt . into the base image's own interpreter, with api/ and pylaunch.py copied to /app. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The reconciler and rollout probe HTTP on /api/health, which answers 503 when the route table is empty; the ALB target-group health check is declared in apg-infra and is not driven by this file. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
+      "notes": "Python WSGI app (api.index:handler) behind pylaunch, built by docker/Dockerfile.api from this tree: pip install -c constraints-api.txt . into the base image's own interpreter, with api/ (pylaunch.py included) copied to /app and invoked as python -m api.pylaunch. pylaunch binds 127.0.0.1 unless --host 0.0.0.0 is passed, which the entrypoint does. The reconciler and rollout probe HTTP on /api/health, which answers 503 when the route table is empty; the ALB target-group health check is declared in apg-infra and is not driven by this file. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
       "cmd": [
         "sh",
         "-c",
-        "exec python pylaunch.py --app api.index:handler --host 0.0.0.0 --port 8061"
+        "exec python -m api.pylaunch --app api.index:handler --host 0.0.0.0 --port 8061"
       ]
     },
     {
@@ -77,11 +77,11 @@
       "dataClass": "none",
       "wave": 1,
       "owner": "simonmak-ascent",
-      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own Dockerfile at the root is the stdio MCP for the registry and is unrelated. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
+      "notes": "Same image as the API, different entrypoint (api.mcp:handler) on 8060. The repository's own docker/Dockerfile is the stdio MCP for the registry and is unrelated. The image is the one image.yml's image-api job published, at the commit its org.opencontainers.image.revision label names \u2014 not a build from a node slot.",
       "cmd": [
         "sh",
         "-c",
-        "exec python pylaunch.py --app api.mcp:handler --host 0.0.0.0 --port 8060"
+        "exec python -m api.pylaunch --app api.mcp:handler --host 0.0.0.0 --port 8060"
       ]
     }
   ]

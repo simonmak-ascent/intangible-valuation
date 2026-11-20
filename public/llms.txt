@@ -30,7 +30,7 @@ All tools are deterministic calculators: read-only, no external data. Supply eve
 
 - [Website](https://intangible-valuation.ascent-partners.com/): calculators
 - [Documentation](https://intangible-valuation.ascent-partners.com/docs): library reference
-- [MCP guide](https://intangible-valuation.ascent-partners.com/mcp): client configuration
+- [MCP guide](https://intangible-valuation.ascent-partners.com/developers/mcp): client configuration
 - [Agent skills](https://intangible-valuation.ascent-partners.com/skills)
 - [Source code](https://github.com/simonmak-ascent/intangible-valuation)
 - [PyPI package](https://pypi.org/project/intangible-valuation/)

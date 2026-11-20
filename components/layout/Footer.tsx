@@ -31,7 +31,7 @@ export function Footer() {
             <h4 className="font-semibold text-sm text-neutral-900 dark:text-white mb-3">Resources</h4>
             <ul className="space-y-2">
               <li><Link href="/docs" className="text-sm text-neutral-500 hover:text-primary-500">Documentation</Link></li>
-              <li><Link href="/mcp" className="text-sm text-neutral-500 hover:text-primary-500">MCP Gateway</Link></li>
+              <li><Link href="/developers/mcp" className="text-sm text-neutral-500 hover:text-primary-500">MCP Gateway</Link></li>
               <li><Link href="/skills" className="text-sm text-neutral-500 hover:text-primary-500">AI Skills</Link></li>
               <li><Link href="/about" className="text-sm text-neutral-500 hover:text-primary-500">About</Link></li>
             </ul>
