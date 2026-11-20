@@ -1,8 +1,8 @@
 # Image for the two Python services — `iv-api` (the calculator API) and `iv-mcp` (the hosted MCP
 # surface). They run the same tree with different commands, so one image serves both:
 #
-#   iv-api   python pylaunch.py --app api.index:handler --host 0.0.0.0 --port 8061
-#   iv-mcp   python pylaunch.py --app api.mcp:handler   --host 0.0.0.0 --port 8060
+#   iv-api   python -m api.pylaunch --app api.index:handler --host 0.0.0.0 --port 8061
+#   iv-mcp   python -m api.pylaunch --app api.mcp:handler   --host 0.0.0.0 --port 8060
 #
 # Why this file exists (OI-40 in apg-infra). Until 2026-11-20 these containers ran an image built on
 # a node from its own work tree, with no Dockerfile in the repository, no revision label, and a
@@ -74,13 +74,13 @@ COPY mcp_server ./mcp_server
 # Installed from THIS tree, under constraints generated from it: without the file, two builds of one
 # commit can ship different pydantic — and pydantic decides the JSON every API client sees, because
 # results are serialised through `model_dump(mode="json")`. Same argument the docs stage records.
-COPY constraints-api.txt ./
+COPY docker/constraints-api.txt ./
 RUN pip install -c constraints-api.txt .
 
-# The handler modules and the launcher the container command already calls. `pylaunch.py` sits at
-# the working directory so `api.index` resolves through the script's own directory.
+# The handler modules and the launcher. `pylaunch.py` lives inside `api/` and is invoked as
+# `python -m api.pylaunch`, so the working directory (the package root) is what lands on `sys.path`
+# and `api.index` resolves without the launcher having to manipulate the path itself.
 COPY api ./api
-COPY pylaunch.py ./
 
 # container.json runs these as 1001:1001, which docker's --user applies. Declared here too, so the
 # non-root guarantee is a property of the artefact rather than of whoever writes the run command:
@@ -89,4 +89,4 @@ USER 1001:1001
 
 EXPOSE 8061 8060
 
-CMD ["python", "pylaunch.py", "--app", "api.index:handler", "--host", "0.0.0.0", "--port", "8061"]
+CMD ["python", "-m", "api.pylaunch", "--app", "api.index:handler", "--host", "0.0.0.0", "--port", "8061"]

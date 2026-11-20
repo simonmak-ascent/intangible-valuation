@@ -68,7 +68,7 @@ test.describe("Calculator", () => {
 
 test.describe("MCP Gateway", () => {
   test("displays setup instructions", async ({ page }) => {
-    await page.goto("/mcp");
+    await page.goto("/developers/mcp");
     await expect(page.getByText("Quick Start").first()).toBeVisible();
     // Substring match: only the command block spells the full spec (the prose above it says just
     // `pip install`). `.first()` keeps strict mode quiet if another line ever quotes it.

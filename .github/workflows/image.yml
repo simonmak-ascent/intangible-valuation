@@ -53,7 +53,7 @@ name: image
 # their bases by digest as of 2026-11-20 — `Dockerfile.web` all four (node:22-slim ×3,
 # python:3.12-slim ×1), `Dockerfile.api` its one — so each image asserts the revisions its commit
 # names. What is still unasserted is said rather than implied: the pip and build-backend fetch in each
-# Dockerfile, and the apt transaction `Dockerfile.api:32-36` describes, which is why that image calls
+# Dockerfile, and the apt transaction `docker/Dockerfile.api:56-59` describes, which is why that image calls
 # itself version-asserted and not bit-reproducible.
 
 on:
@@ -138,7 +138,7 @@ jobs:
             docker tag "$src" "$dst"
           else
             dst="$repo:$(date -u +%Y%m%dT%H%M%S)"
-            docker build -f Dockerfile.web -t "$dst" \
+            docker build -f docker/Dockerfile.web -t "$dst" \
               --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
               --label "org.opencontainers.image.revision=${{ github.sha }}" .
           fi
@@ -298,7 +298,7 @@ jobs:
           set -eu
           repo="ghcr.io/${{ github.repository }}"
           dst="$repo:api-$(date -u +%Y%m%dT%H%M%S)"
-          docker build -f Dockerfile.api -t "$dst" \
+          docker build -f docker/Dockerfile.api -t "$dst" \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" .
           printf 'dst=%s\n' "$dst" >> "$GITHUB_OUTPUT"

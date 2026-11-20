@@ -14,8 +14,16 @@ const nextConfig: NextConfig = {
   // served from a URL whose base ends in /docs/, because MkDocs emits relative asset and nav URLs:
   // at bare /docs they would resolve against / and 404 (there is no public/assets). A redirect, not a
   // rewrite — a rewrite keeps the URL at /docs and the stylesheet still misses.
+  //
+  // /mcp is a temporary redirect, not a page: the MCP endpoint is moving from /api/mcp to /mcp at the
+  // edge (an ALB rule owned by apg-infra), and this page had to leave the path so it can be served by
+  // the iv-mcp container. Until that rule lands, /mcp keeps working as a redirect to the moved page
+  // rather than 404ing; once it lands the edge answers first and this entry never fires.
   async redirects() {
-    return [{ source: "/docs", destination: "/docs/index.html", permanent: false }];
+    return [
+      { source: "/docs", destination: "/docs/index.html", permanent: false },
+      { source: "/mcp", destination: "/developers/mcp", permanent: false },
+    ];
   },
   headers: async () => [
     {

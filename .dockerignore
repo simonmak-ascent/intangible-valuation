@@ -44,3 +44,6 @@ data/*
 # the engine in the image is the engine at the built commit, and a stale .pyc is a file from neither.
 **/__pycache__
 **/*.py[cod]
+
+# working documents are not part of any image
+.worknotes/

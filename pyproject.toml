@@ -112,7 +112,7 @@ include = [
     "CITATION.cff",
     "server.json",
     "glama.json",
-    "Dockerfile",
+    "docker/Dockerfile",
 ]
 exclude = [
     "specs/",
@@ -131,7 +131,7 @@ target-version = "py311"
 line-length = 120
 # Generated stdio server: emit from mcp_server/tool_surface.py via
 # scripts/generate_mcp.py. Excluded so codegen stays byte-stable and formatted.
-extend-exclude = ["mcp_server/server.py", ".deploy"]
+extend-exclude = ["mcp_server/server.py", ".cache"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "PL", "PT", "T20", "ERA", "ARG", "RET"]

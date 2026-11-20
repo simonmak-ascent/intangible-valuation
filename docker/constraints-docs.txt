@@ -8,7 +8,7 @@
 #
 # Regenerate (the docs stage is not the final stage, so it needs its own tag and --target — a plain
 # build tags the `run` stage, which is node:22-slim and has no pip):
-#   docker build --target docs -t iv-docs:constraints -f Dockerfile.web . \
+#   docker build --target docs -t iv-docs:constraints -f docker/Dockerfile.web . \
 #     && docker run --rm iv-docs:constraints pip freeze
 #   -> minus the project itself (intangible-valuation==…) and pip/setuptools/wheel.
 annotated-types==0.8.0
