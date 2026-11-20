@@ -13,11 +13,14 @@ annotations). Model Context Protocol (MCP) JSON-RPC 2.0 over POST:
 """
 
 import json as _json
+import logging as _logging
 import os as _os
 import sys as _sys
+import uuid as _uuid
 
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 
+from api import limits as _limits  # noqa: E402
 from mcp_server import agent_guides  # noqa: E402
 from mcp_server.tool_surface import (  # noqa: E402
     SERVER_NAME,
@@ -64,6 +67,12 @@ def _cors(origin=None) -> dict:
 
 
 _CORS = _cors()
+
+# One copy of the limit, shared with the calculator handler: `api/limits.py` holds the number and the
+# boundary test, because a second copy in a second service drifts silently.
+MAX_BODY_BYTES = _limits.MAX_BODY_BYTES
+body_too_large = _limits.body_too_large
+_too_large_body = _limits.too_large_body
 
 
 def _ok(payload: dict) -> tuple:
@@ -144,9 +153,33 @@ def handle_request(http_method: str, _path: str, body_raw: str | None) -> tuple:
         try:
             result = call_tool(name, arguments)
         except ValueError as exc:
+            # `pydantic.ValidationError` subclasses `ValueError`, so this branch decided the fate of
+            # every bad figure — and `str(exc)` names the internal model (`TVMInputs`), the field and
+            # `input_value=…`. That is the leak `api/index.py` was changed to stop. A plain `ValueError`
+            # is `call_tool`'s own refusal ("Unknown method", "requires parameter") or a domain rule
+            # raised inside a library function ("royalty_rate must be between 0 and 1, got 0.9"); both
+            # quote only the caller's own figures, which is what makes them actionable, so both keep
+            # their message. Neither names an internal class or echoes a validation payload.
+            if type(exc) is not ValueError:
+                ref = _uuid.uuid4().hex[:12]
+                # `-32602`, not `-32603`: the fault is the caller's arguments, and the code is what
+                # tells an agent client "retrying is pointless" rather than "the server broke". The
+                # message is suppressed because it embeds `input_value`; the code carries no data.
+                # Logged with the tool and the field names — `loc`, never `input` — so the reference an
+                # operator is handed actually identifies the request.
+                fields = [str(err.get("loc")) for err in getattr(exc, "errors", lambda: [])()]
+                _logging.getLogger("intangible_valuation.mcp").error(
+                    "tool call failed ref=%s tool=%s fields=%s", ref, name, ",".join(fields)
+                )
+                return _rpc_error(req_id, -32602, f"Invalid parameters (reference {ref})")
             return _rpc_error(req_id, -32602, str(exc))
-        except Exception as exc:  # noqa: BLE001 — surface any computation error to the client
-            return _rpc_error(req_id, -32603, str(exc))
+        except Exception:  # noqa: BLE001 — every other fault is reported, never echoed
+            # The detail names internal classes and request shapes — the same reason `api/index.py`
+            # answers "Calculation failed" with a reference instead of `str(e)`. It goes to the log,
+            # and the caller gets a correlation id it can quote.
+            ref = _uuid.uuid4().hex[:12]
+            _logging.getLogger("intangible_valuation.mcp").exception("tool call failed ref=%s", ref)
+            return _rpc_error(req_id, -32603, f"Calculation failed (reference {ref})")
         return _rpc_result(
             req_id,
             {"content": [{"type": "text", "text": _json.dumps(result)}], "structuredContent": result},
@@ -210,8 +243,25 @@ class handler(BaseHTTPRequestHandler):  # noqa: N801
     def do_POST(self):  # noqa: N802
         if self._refuse_origin():
             return
-        length = int(self.headers.get("Content-Length", 0))
-        body_raw = self.rfile.read(length).decode() if length else "{}"
+        try:
+            length = int(self.headers.get("Content-Length", 0) or 0)
+        except (TypeError, ValueError):
+            # An unparsable length used to raise out of do_POST and end in a traceback.
+            self._respond(
+                400, {**_CORS, "Content-Type": "application/json"}, b'{"error":"Invalid Content-Length header"}'
+            )
+            return
+        if body_too_large(length):
+            # Before the read, so an oversized or negative length never allocates or blocks.
+            self._respond(413, {**_CORS, "Content-Type": "application/json"}, _too_large_body())
+            return
+        try:
+            body_raw = self.rfile.read(length).decode() if length else "{}"
+        except UnicodeDecodeError:
+            # `UnicodeDecodeError` is not a `TimeoutError`, so without this it escaped
+            # `handle_one_request` into `handle_error`: a traceback and no HTTP status at all.
+            self._respond(400, {**_CORS, "Content-Type": "application/json"}, b'{"error":"Invalid request body"}')
+            return
         code, headers, body = handle_request("POST", self.path, body_raw)
         self._respond(code, {**headers, **_cors(self._origin())}, body)
 

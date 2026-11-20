@@ -7,6 +7,8 @@ formulas serving the same endpoints is worse than a container that refuses to st
 """
 
 import inspect, json, logging, uuid
+
+from api import limits as _limits
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
@@ -230,6 +232,11 @@ def _to_plain(result):
 
 ROUTES = dict(_LIB_FUNCTIONS)
 
+# One copy of the limit, shared with the MCP handler: `api/limits.py` holds the number and the
+# boundary test, because a second copy in a second service drifts silently.
+MAX_BODY_BYTES = _limits.MAX_BODY_BYTES
+body_too_large = _limits.body_too_large
+
 
 def _to_float_value(result) -> float:
     """Extract the numeric value from a ValuationResult or plain dict."""
@@ -383,6 +390,11 @@ class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             length = int(self.headers.get("Content-Length", 0))
+            if body_too_large(length):
+                # Checked on the declared length, before the read. A negative length means `read(-1)`,
+                # i.e. read-to-EOF; without this a single client pins a worker thread indefinitely.
+                self._send(413, json.loads(_limits.too_large_body()))
+                return
             raw_body = self.rfile.read(length).decode() if length else "{}"
             body = json.loads(raw_body) if raw_body else {}
         except (json.JSONDecodeError, ValueError):

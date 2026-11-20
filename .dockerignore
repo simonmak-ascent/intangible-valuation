@@ -39,3 +39,8 @@ data/*
 # sources and their assets must survive the ignore list above — later rules win.
 !docs
 !docs/**
+
+# Bytecode from a working tree must not enter the image: the whole point of Dockerfile.api is that
+# the engine in the image is the engine at the built commit, and a stale .pyc is a file from neither.
+**/__pycache__
+**/*.py[cod]

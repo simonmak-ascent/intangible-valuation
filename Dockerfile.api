@@ -1,0 +1,58 @@
+# Image for the two Python services — `iv-api` (the calculator API) and `iv-mcp` (the hosted MCP
+# surface). They run the same tree with different commands, so one image serves both:
+#
+#   iv-api   python pylaunch.py --app api.index:handler --host 0.0.0.0 --port 8061
+#   iv-mcp   python pylaunch.py --app api.mcp:handler   --host 0.0.0.0 --port 8060
+#
+# Why this file exists (OI-40 in apg-infra). Until 2026-11-20 these containers ran an image built on
+# a node from its own work tree, with no Dockerfile in the repository, no revision label, and a
+# digest pinned in `container.json` that existed on no registry. The consequence was measurable: the
+# deployed engine rejected `value_in_use` with `Invalid parameters: ... unexpected keyword argument`
+# — the pre-#62 handler — while the calculator served from the same commit offered the field. A
+# deployment nobody can reproduce is a deployment nobody can reason about.
+#
+# The library is installed from THIS tree, not from PyPI: `pip install .` builds the local package,
+# so the engine in the image is the engine at the built commit. No extra is added — the hosted
+# handler imports neither fastmcp nor its tree (see below). Installing
+# `intangible-valuation` from the index (which `api/requirements.txt` names) would ship whatever
+# version PyPI served that day, which is the drift this replaces.
+
+# The base is pinned by digest, not by the floating `python:3.12-slim` tag: the label asserts a
+# revision, and a tag that moves would make two builds of the same commit differ.
+FROM python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# The root wheel ships both the engine (`src/`) and the MCP package (`mcp_server/`), so both must be
+# present before the build backend runs.
+#
+# No extra is installed. The hosted handler `api.mcp` imports only the standard library plus
+# `mcp_server.{agent_guides,tool_surface}`, and neither imports fastmcp — that is the *stdio* server
+# (`mcp_server/server.py`, entrypoint `intangible-valuation-mcp`), which no container in
+# `container.json` runs. `.[mcp]` here would add fastmcp, starlette, uvicorn and httpx to the image
+# for a code path it never executes.
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+COPY mcp_server ./mcp_server
+# Installed from THIS tree, under constraints generated from it: without the file, two builds of one
+# commit can ship different pydantic — and pydantic decides the JSON every API client sees, because
+# results are serialised through `model_dump(mode="json")`. Same argument the docs stage records.
+COPY constraints-api.txt ./
+RUN pip install -c constraints-api.txt .
+
+# The handler modules and the launcher the container command already calls. `pylaunch.py` sits at
+# the working directory so `api.index` resolves through the script's own directory.
+COPY api ./api
+COPY pylaunch.py ./
+
+# container.json runs these as 1001:1001, which docker's --user applies. Declared here too, so the
+# non-root guarantee is a property of the artefact rather than of whoever writes the run command:
+# `docker run iv-api` without --user would otherwise be uid 0.
+USER 1001:1001
+
+EXPOSE 8061 8060
+
+CMD ["python", "pylaunch.py", "--app", "api.index:handler", "--host", "0.0.0.0", "--port", "8061"]

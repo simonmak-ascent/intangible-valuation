@@ -1,19 +1,63 @@
 name: image
 
-# Build and publish the web application image.
+# Build and publish the container images: the web application (`Dockerfile.web`) and the Python
+# services (`Dockerfile.api`, which serves both `iv-api` and `iv-mcp`).
 #
 # Building needs a runner with **Docker socket access**. It runs on `apg-ecs-01` — a runner on
 # workforce-01 whose user is in the `docker` group. It must NOT run on the `apg-ci-04` control-node
 # runner, which has no docker socket by design (apg-infra OI-60): that failure mode was a 27-second
 # socket error, and before the runner existed it was a nine-minute silent queue.
 #
-# The first step checks for Docker so a misrouted job fails with a message instead of hanging.
+# Each job installs its own vulnerability scanner rather than expecting one on the node. Measured
+# 2026-11-20: `trivy` is absent from `apg-ecs-01` and is not declared anywhere in `apg-infra`, so a
+# step that merely called it would fail every dispatch — a gate that fails for its own absence, not
+# for a finding. Version and checksum are pinned below, and the scanner unpacks into
+# `$RUNNER_TEMP/bin` so `$GITHUB_PATH` does not receive a general writable directory that also holds
+# the download.
+#
+# Order in both jobs is **build → scan → log in → push**, for two separate reasons:
+#   * the scan precedes the push, so a digest that fails it never reaches the registry and the
+#     "pin it in container.json" line is never printed for one. The deploy path's only guard is
+#     equality with the pin (`deploy-digest.yml`), so a published vulnerable digest needed nothing
+#     but an operator edit to reach production;
+#   * the GHCR login follows the scan, and writes to a **per-job `DOCKER_CONFIG`** rather than the
+#     CLI default `$HOME/.docker/config.json`. Both jobs run as the same user on the same runner, so
+#     the default would let one job's `packages: write` token sit on disk while the other job's
+#     scanner parses untrusted image layers. Trivy needs no registry credential for a local tag; only
+#     the push does.
+#
+#     Residual, stated rather than implied: `$RUNNER_TEMP` is private between *users*, not between
+#     concurrent jobs of the same user, so while one job is inside its push-and-logout window the
+#     other job runs as a UID that can read its credential file. Exploiting that needs code execution
+#     inside the scanner while it parses a layer. Serialising the two jobs would close it and is not
+#     done here: it doubles the wall time of every dispatch, including the API-only one this
+#     workflow exists for.
+#
+# Policy: fail on HIGH and CRITICAL **vulnerabilities that have a fix available**, and on any
+# HIGH/CRITICAL **secret** the image ships. `--ignore-unfixed` is deliberate for the first class —
+# without it a single unfixed CVE in an upstream base image blocks all publication indefinitely with
+# no in-workflow escape, and the remedy under that pressure is `|| true`, which destroys the gate.
+# It does not apply to the second: trivy's `--scanners` default is `[vuln, secret]`, and its
+# `IgnoreStatuses` (what `--ignore-unfixed` sets) reaches only the vulnerability filter. So a
+# credential baked into a layer blocks the push with no in-workflow waiver. That is intended,
+# because this job holds `packages: write` and a docker socket — and it is stated here rather than
+# discovered while looking for the escape hatch. The only suppression left is a committed ignore
+# file (trivy's default `--ignorefile` is `.trivyignore`, whose YAML form has a documented `secrets:`
+# section), which is a reviewable change rather than a flag, and is absent from this tree today.
+# The advisory pass below lists both classes for the record.
+#
+# Not reproducible, and no longer claimed to be: the database is fetched from the rolling `:2` tag at
+# scan time, so identical image bytes can be judged against a different database on a later day.
+# `TRIVY_CACHE_DIR` in `$RUNNER_TEMP` exists to stop a persistent runner carrying a stale or poisoned
+# database between dispatches — not to pin one. Pinning it by digest is open. So is the larger gap
+# this cannot cover: `Dockerfile.web` builds from `node:22-slim` and `python:3.12-slim` **tags**, so
+# the web digest is not rebuildable from the commit. `Dockerfile.api` does pin its base by digest.
 
 on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Optional local image tag to push instead of building (name:stamp)"
+        description: "Optional local image tag to push instead of building (name:stamp). Applies to the web job only."
         required: false
         type: string
 
@@ -23,12 +67,17 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  TRIVY_VERSION: "0.76.2"
+  # `trivy_0.76.2_Linux-64bit.tar.gz`, verified against the release's own per-asset digest. The
+  # release is marked `immutable: true`, so the asset cannot be re-uploaded under this tag to defeat
+  # the pin.
+  TRIVY_SHA256: "bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf"
 
 jobs:
   image:
     runs-on: [self-hosted, apg-ecs-01]
-    # The build fetches fonts and pip wheels. 45 minutes is generous for a cold build and still
-    # bounded; without it, the default is six hours.
+    # The build fetches pip wheels. 45 minutes is generous for a cold build and still bounded;
+    # without it, the default is six hours.
     timeout-minutes: 45
     steps:
       - name: Check the runner can reach Docker
@@ -39,23 +88,50 @@ jobs:
           fi
           echo "docker $(docker version --format '{{.Server.Version}}')"
 
-      - uses: actions/checkout@v7
+      # Pinned to the commit the vendored estate pipeline uses (`estate-ci.yml`), and because this
+      # job holds a docker socket and `packages: write`: a moved action tag is code execution with
+      # both.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: inputs.image == ''
+        with:
+          # The action's default writes the token into `$GITHUB_WORKSPACE/.git/config`, which is the
+          # working directory the scan step runs in. The fetch needs it; nothing after does.
+          persist-credentials: false
 
-      - name: Log in to GHCR
+      - name: Install the scanner
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" \
-            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          set -eu
+          url="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -sSfL -o "$RUNNER_TEMP/trivy.tar.gz" "$url"
+          echo "${TRIVY_SHA256}  $RUNNER_TEMP/trivy.tar.gz" | sha256sum -c -
+          # Only the one named member, into a directory of its own: adding `$RUNNER_TEMP` itself to
+          # `$GITHUB_PATH` would put the downloaded tarball's directory ahead of `/usr/bin` for
+          # every later step on this runner.
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/bin" trivy
+          chmod 0755 "$RUNNER_TEMP/bin/trivy"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-      - name: Build and push
+      - name: Build the image
         id: build
+        env:
+          # Through `env:`, never interpolated into the script: `${{ inputs.image }}` is substituted
+          # before the shell parses, so a dispatch input of `$(...|sh)` would execute on a runner
+          # whose user is in the docker group, with GITHUB_TOKEN in scope.
+          SOURCE_IMAGE: ${{ inputs.image }}
         run: |
           set -eu
           repo="ghcr.io/${{ github.repository }}"
-          if [ -n "${{ inputs.image }}" ]; then
-            src="${{ inputs.image }}"
+          if [ -n "$SOURCE_IMAGE" ]; then
+            src="$SOURCE_IMAGE"
             case "$src" in *:*) ;; *) echo "image must be name:stamp (got $src)" >&2; exit 1 ;; esac
-            dst="$repo:${src#*:}"
+            stamp="${src#*:}"
+            # The stamp becomes the tag and is written to `$GITHUB_OUTPUT`, a `key=value` file, so a
+            # newline in it would inject a second output line. Tag characters only — which also
+            # rejects a registry with a port (`reg:5000/img:tag`), whose stamp would begin `5000/`
+            # and make `docker tag` fail later with a less obvious message.
+            case "$stamp" in "" | *[!A-Za-z0-9._-]*) echo "stamp may only contain [A-Za-z0-9._-] (got $stamp)" >&2; exit 1 ;; esac
+            dst="$repo:$stamp"
             docker tag "$src" "$dst"
           else
             dst="$repo:$(date -u +%Y%m%dT%H%M%S)"
@@ -63,9 +139,106 @@ jobs:
               --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
               --label "org.opencontainers.image.revision=${{ github.sha }}" .
           fi
-          docker push "$dst"
-          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$dst")"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          printf 'dst=%s\n' "$dst" >> "$GITHUB_OUTPUT"
+
+      # Before the push. `DST` arrives through `env:` rather than `${{ }}` interpolation because, on
+      # the `SOURCE_IMAGE` path, the tag half is dispatcher-supplied and would otherwise be parsed by
+      # the shell.
+      - name: Scan before publishing
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          # The runner is persistent, so the default cache location would carry the vulnerability DB
+          # from one dispatch into the next: identical image bytes would be judged against different
+          # databases, and a poisoned cache would suppress findings with nothing in the log to say
+          # so. `$RUNNER_TEMP` goes away with the job. Step-level because the `runner` context is not
+          # available in workflow- or job-level `env:` — measured, not assumed: actionlint rejects
+          # both with `context "runner" is not allowed here`.
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+        run: |
+          set -eu
+          # The database is fetched and identified BEFORE the gate. `--exit-code 1` under `set -e`
+          # aborts the script, so anything after it never reaches the summary — and a blocked scan is
+          # the verdict that most needs a database identity, since the DB comes from a rolling tag.
+          trivy image --download-db-only --no-progress
+          {
+            echo "### scan"
+            echo ""
+            echo "- image: \`$DST\`"
+            echo "- scanner and database:"
+            echo ""
+            echo '```'
+            trivy --version
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress "$DST"
+
+      # `--ignore-unfixed` is a report filter, not a threshold: those findings leave the scanner's
+      # output entirely, so the gate above cannot show them. This pass prints them for the record.
+      # `--exit-code 0` and `continue-on-error` both apply, because a disclosure step must never
+      # withhold an image that already passed the gate.
+      - name: Report HIGH and CRITICAL including unfixed — advisory
+        continue-on-error: true
+        # `always()` so it still runs when the gate above blocks — that is when the unfixed list is
+        # most useful — and the `outcome` check so it stays inert when no image was built.
+        if: always() && steps.build.outcome == 'success'
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+        run: |
+          set +e
+          out="$(trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress "$DST" 2>&1)"
+          total="$(printf '%s\n' "$out" | wc -l)"
+          set -e
+          {
+            echo "### HIGH/CRITICAL vulnerabilities and secrets, including unfixed — advisory, not blocking"
+            echo ""
+            echo '```'
+            printf '%s\n' "$out" | sed -n '1,400p'
+            # A cap without a marker reads as a complete record; say so when it is not. `sed -n` reads
+            # the whole stream, so no writer is killed by SIGPIPE and this step does not depend on
+            # `pipefail` being off — which it is, since no `shell:` is declared and bash runs `-e` only.
+            if [ "$total" -gt 400 ]; then
+              echo "… truncated: first 400 of $total lines; the remainder is in this step's log"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # The marker points at the job log, so the remainder has to actually reach it — nothing
+          # else prints `$out`, and a pointer to a log that lacks the output is worse than no marker.
+          if [ "$total" -gt 400 ]; then printf '%s\n' "$out" | sed -n '401,$p'; fi
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Per-job, not the CLI default `$HOME/.docker`. Both jobs run as the same user on the same
+          # runner, so the default would leave one job's `packages: write` token on disk while the
+          # other job's scanner parses untrusted image layers.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          set -eu
+          # `docker push` states the digest of what it just uploaded, which is authoritative. The
+          # inspect fallback exists for a source pulled from the same repository as a manifest list,
+          # where `RepoDigests` also carries the index digest; `.RepoDigests` order is not ours to
+          # assume, so the pushed digest is preferred and a foreign registry's entry never matches.
+          push_out="$(docker push "$DST" 2>&1)" || { printf '%s\n' "$push_out" >&2; exit 1; }
+          printf '%s\n' "$push_out" >&2
+          digest="$(printf '%s\n' "$push_out" \
+            | sed -n 's|.*digest: \(sha256:[a-f0-9]\{64\}\).*|ghcr.io/${{ github.repository }}@\1|p' \
+            | tail -n1)"
+          if [ -z "$digest" ]; then
+            digest="$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$DST" \
+              | grep -F "${DST%:*}@" | sed -n '1p')"
+          fi
+          if [ -z "$digest" ]; then
+            echo "::error::no digest for $DST after the push" >&2
+            exit 1
+          fi
           {
             echo "### published"
             echo ""
@@ -78,4 +251,164 @@ jobs:
 
       - name: Log out
         if: always()
+        env:
+          # Same directory as the login: `docker logout` with the default config would leave the
+          # per-job credential file behind.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: docker logout ghcr.io || true
+
+  # The two Python services share one image (see Dockerfile.api). Until this job existed they ran a
+  # build made on a node from its own work tree, with no revision label and a digest pinned in
+  # `container.json` that no registry held — so the deployed engine drifted behind the repository and
+  # served the pre-#62 handler while the calculator offered the new IAS 36 field. Building it here
+  # puts the engine under the same disclosure as the site: a digest, a provenance label, and a pin.
+  image-api:
+    runs-on: [self-hosted, apg-ecs-01]
+    timeout-minutes: 30
+    steps:
+      - name: Check the runner can reach Docker
+        run: |
+          if ! docker version --format '{{.Server.Version}}' >/dev/null 2>&1; then
+            echo "::error::this runner has no Docker socket; the API image cannot be built here."
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # As in the `image` job: no token left in `.git/config` for the scan step to sit beside.
+          persist-credentials: false
+
+      - name: Install the scanner
+        run: |
+          set -eu
+          url="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -sSfL -o "$RUNNER_TEMP/trivy.tar.gz" "$url"
+          echo "${TRIVY_SHA256}  $RUNNER_TEMP/trivy.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/bin" trivy
+          chmod 0755 "$RUNNER_TEMP/bin/trivy"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Build the image
+        id: build
+        run: |
+          set -eu
+          repo="ghcr.io/${{ github.repository }}"
+          dst="$repo:api-$(date -u +%Y%m%dT%H%M%S)"
+          docker build -f Dockerfile.api -t "$dst" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" .
+          printf 'dst=%s\n' "$dst" >> "$GITHUB_OUTPUT"
+
+      - name: Scan before publishing
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          # The runner is persistent, so the default cache location would carry the vulnerability DB
+          # from one dispatch into the next: identical image bytes would be judged against different
+          # databases, and a poisoned cache would suppress findings with nothing in the log to say
+          # so. `$RUNNER_TEMP` goes away with the job. Step-level because the `runner` context is not
+          # available in workflow- or job-level `env:` — measured, not assumed: actionlint rejects
+          # both with `context "runner" is not allowed here`.
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+        run: |
+          set -eu
+          # The database is fetched and identified BEFORE the gate. `--exit-code 1` under `set -e`
+          # aborts the script, so anything after it never reaches the summary — and a blocked scan is
+          # the verdict that most needs a database identity, since the DB comes from a rolling tag.
+          trivy image --download-db-only --no-progress
+          {
+            echo "### scan"
+            echo ""
+            echo "- image: \`$DST\`"
+            echo "- scanner and database:"
+            echo ""
+            echo '```'
+            trivy --version
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress "$DST"
+
+      # `--ignore-unfixed` is a report filter, not a threshold: those findings leave the scanner's
+      # output entirely, so the gate above cannot show them. This pass prints them for the record.
+      # `--exit-code 0` and `continue-on-error` both apply, because a disclosure step must never
+      # withhold an image that already passed the gate.
+      - name: Report HIGH and CRITICAL including unfixed — advisory
+        continue-on-error: true
+        # `always()` so it still runs when the gate above blocks — that is when the unfixed list is
+        # most useful — and the `outcome` check so it stays inert when no image was built.
+        if: always() && steps.build.outcome == 'success'
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+        run: |
+          set +e
+          out="$(trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress "$DST" 2>&1)"
+          total="$(printf '%s\n' "$out" | wc -l)"
+          set -e
+          {
+            echo "### HIGH/CRITICAL vulnerabilities and secrets, including unfixed — advisory, not blocking"
+            echo ""
+            echo '```'
+            printf '%s\n' "$out" | sed -n '1,400p'
+            # A cap without a marker reads as a complete record; say so when it is not. `sed -n` reads
+            # the whole stream, so no writer is killed by SIGPIPE and this step does not depend on
+            # `pipefail` being off — which it is, since no `shell:` is declared and bash runs `-e` only.
+            if [ "$total" -gt 400 ]; then
+              echo "… truncated: first 400 of $total lines; the remainder is in this step's log"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # The marker points at the job log, so the remainder has to actually reach it — nothing
+          # else prints `$out`, and a pointer to a log that lacks the output is worse than no marker.
+          if [ "$total" -gt 400 ]; then printf '%s\n' "$out" | sed -n '401,$p'; fi
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Per-job, not the CLI default `$HOME/.docker`. Both jobs run as the same user on the same
+          # runner, so the default would leave one job's `packages: write` token on disk while the
+          # other job's scanner parses untrusted image layers.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push
+        env:
+          DST: ${{ steps.build.outputs.dst }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
+        run: |
+          set -eu
+          # `docker push` states the digest of what it just uploaded, which is authoritative. The
+          # inspect fallback exists for a source pulled from the same repository as a manifest list,
+          # where `RepoDigests` also carries the index digest; `.RepoDigests` order is not ours to
+          # assume, so the pushed digest is preferred and a foreign registry's entry never matches.
+          push_out="$(docker push "$DST" 2>&1)" || { printf '%s\n' "$push_out" >&2; exit 1; }
+          printf '%s\n' "$push_out" >&2
+          digest="$(printf '%s\n' "$push_out" \
+            | sed -n 's|.*digest: \(sha256:[a-f0-9]\{64\}\).*|ghcr.io/${{ github.repository }}@\1|p' \
+            | tail -n1)"
+          if [ -z "$digest" ]; then
+            digest="$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$DST" \
+              | grep -F "${DST%:*}@" | sed -n '1p')"
+          fi
+          if [ -z "$digest" ]; then
+            echo "::error::no digest for $DST after the push" >&2
+            exit 1
+          fi
+          {
+            echo "### api image published"
+            echo ""
+            echo '```'
+            echo "$digest"
+            echo '```'
+            echo ""
+            echo "Pin it in \`container.json\` for both \`intangible-valuation-api\` and \`-mcp\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Log out
+        if: always()
+        env:
+          # Same directory as the login: `docker logout` with the default config would leave the
+          # per-job credential file behind.
+          DOCKER_CONFIG: ${{ runner.temp }}/docker
         run: docker logout ghcr.io || true
