@@ -20,17 +20,43 @@ describe("Valuation method catalog", () => {
     }
   });
 
-  it("declares an mcpTool in snake_case for every method", () => {
+  it("declares mcp as null, or a real tool with at least one method", () => {
     for (const method of CATALOG) {
-      expect(method.mcpTool).toMatch(/^[a-z0-9_]+$/);
-      expect(method.mcpTool).not.toContain("-");
+      if (method.mcp === null) continue;
+      expect(method.mcp.tool).toMatch(/^valuation_[a-z0-9_]+$/);
+      expect(method.mcp.methods.length).toBeGreaterThan(0);
+      for (const m of method.mcp.methods) expect(m).toMatch(/^[a-z0-9_]+$/);
     }
   });
 
-  it("keeps the slug ↔ mcpTool naming invariant (traceability)", () => {
-    for (const method of CATALOG) {
-      expect(method.mcpTool.replace(/_/g, "-")).toBe(method.slug);
-    }
+  it("names exactly the methods that only the HTTP API serves", () => {
+    // These 21 catalog methods have no MCP path at all: the field that used to be `mcpTool` said
+    // otherwise for every one of them. Pinned so a method silently gaining or losing MCP coverage
+    // fails here; `tests/test_catalog_alignment.py` proves the mapping against the real tool surface.
+    const apiOnly = CATALOG.filter((m) => m.mcp === null).map((m) => m.slug).sort();
+    expect(apiOnly).toEqual([
+      "algorithm-valuation",
+      "analytical-method-valuation",
+      "backlog-valuation",
+      "bargain-purchase-analysis",
+      "brand-royalty-rate-from-comparables",
+      "brand-strength-index",
+      "cash-generating-unit-impairment",
+      "churn-impact-analysis",
+      "contingent-consideration-valuation",
+      "customer-lifetime-value",
+      "deferred-tax-liability-ppa",
+      "fair-value-less-costs-to-sell",
+      "interbrand-brand-valuation",
+      "monte-carlo-with-correlation",
+      "option-pricing-patent",
+      "patent-portfolio-valuation",
+      "profit-split-method",
+      "scenario-analysis",
+      "sensitivity-tornado",
+      "technology-obsolescence-curve",
+      "value-in-use",
+    ]);
   });
 
   it("declares a non-empty parameters schema for every method", () => {

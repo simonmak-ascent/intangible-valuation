@@ -39,7 +39,14 @@ export interface MethodDefinition {
   textbookReference: string;
   parameters: MethodParameter[];
   pythonFunction: string;
-  mcpTool?: string;
+  /**
+   * The MCP tool and method(s) that dispatch to `pythonFunction`, or `null` when the HTTP API is
+   * the only path. This replaced `mcpTool`, which held the slug in snake_case and was presented to
+   * readers as a callable tool name. Of the 68 values it held, 24 named a real method selector, 23
+   * named the Python function instead (a `method:` value no tool accepts), and 21 named nothing
+   * reachable over MCP at all. `tests/test_catalog_alignment.py` keeps this honest.
+   */
+  mcp: { tool: string; methods: string[] } | null;
   skillReference?: string;
   complexity: "basic" | "intermediate" | "advanced";
 }

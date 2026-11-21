@@ -2,12 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { FormulaDisplay } from "@/components/valuation/FormulaDisplay";
+import { getCatalogMethod } from "@/lib/valuation/catalog";
 
 const METHODS: Record<string, {
   slug: string; name: string; category: string; description: string;
   formulaTex?: string; textbookReference: string;
   parameters: { name: string; type: string; required: boolean; description: string }[];
-  pythonCode: string; mcpTool: string;
+  pythonCode: string;
 }> = {
   "present-value": {
     slug: "present-value", name: "Present Value", category: "core",
@@ -27,7 +28,6 @@ result = present_value(
     periods=5
 )
 print(f"Present Value: \${result.value:,.2f}")`,
-    mcpTool: "present_value",
   },
   "capm": {
     slug: "capm", name: "CAPM", category: "core",
@@ -39,15 +39,14 @@ print(f"Present Value: \${result.value:,.2f}")`,
       { name: "beta", type: "number", required: true, description: "Beta coefficient measuring systematic risk. >1 = more volatile than market, <1 = less volatile." },
       { name: "market_return", type: "number", required: true, description: "Expected market return (S&P 500 long-term avg: ~0.10)" },
     ],
-    pythonCode: `from intangible_valuation.core.discount_rates import capm
+    pythonCode: `from intangible_valuation.core.discount_rates import capm_discount_rate
 
-result = capm(
+result = capm_discount_rate(
     risk_free_rate=0.04,
     beta=1.2,
     market_return=0.10
 )
 print(f"Cost of Equity: {result.value:.4f} ({result.value*100:.1f}%)")`,
-    mcpTool: "capm",
   },
   "wacc": {
     slug: "wacc", name: "WACC", category: "core",
@@ -71,7 +70,6 @@ result = wacc(
     tax_rate=0.21
 )
 print(f"WACC: {result.value:.4f} ({result.value*100:.2f}%)")`,
-    mcpTool: "wacc",
   },
   "relief-from-royalty": {
     slug: "relief-from-royalty", name: "Relief from Royalty", category: "income_methods",
@@ -99,14 +97,18 @@ result = relief_from_royalty(
 print(f"Asset Value: \${result.value:,.2f}")
 print(f"PV before TAB: \${result.pv_before_tab:,.2f}")
 print(f"TAB Factor: {result.tab_factor:.4f}")`,
-    mcpTool: "relief_from_royalty",
   },
 };
 
 export default async function MethodDocPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const method = METHODS[slug];
-  if (!method) notFound();
+  const catalogMethod = getCatalogMethod(slug);
+  if (!method || !catalogMethod) notFound();
+  // The MCP path is read from the catalog rather than repeated here: the catalog is what
+  // `tests/test_catalog_alignment.py` proves against the tool surface, and this page is where
+  // the old false claim was rendered, so one copy means a page edit cannot reintroduce it.
+  const mcp = catalogMethod.mcp;
 
   return (
     <div>
@@ -166,10 +168,21 @@ export default async function MethodDocPage({ params }: { params: Promise<{ slug
         <section className="mb-10">
           <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mb-4">MCP Tool</h2>
           <div className="card p-4">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-              This method is available as an MCP tool for AI agents:
-            </p>
-            <code className="text-sm font-mono bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">{method.mcpTool}</code>
+            {mcp ? (
+              <>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
+                  This method is available to AI agents through the MCP tool:
+                </p>
+                <code className="text-sm font-mono bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">{mcp.tool}</code>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-3">
+                  selected with <code className="font-mono">{mcp.methods.length === 1 ? `method: "${mcp.methods[0]}"` : `method: one of ${mcp.methods.map((m) => `"${m}"`).join(" | ")}`}</code>
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                This method is served by the HTTP API only. No MCP tool dispatches to it.
+              </p>
+            )}
           </div>
         </section>
 
