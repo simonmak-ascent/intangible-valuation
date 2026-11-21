@@ -139,7 +139,7 @@ playwright-report/
 .worknotes/
 
 # Plans, handovers and session notes never enter a commit, wherever they are written.
-# `.worknotes/` above is where they normally live; these catch one dropped at the root.
+# `.worknotes/` is where they normally live; these are unanchored, so they catch any that escape it
 PLAN*.md
 HANDOVER*.md
 *.plan.md
