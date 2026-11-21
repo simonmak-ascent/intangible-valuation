@@ -4,8 +4,12 @@
 actually dispatches. They drifted once: every entry carried `mcpTool`, which held the slug in
 snake_case rather than a tool, and the page rendered it as callable. Of those 68 values, 24 were real
 method selectors presented as tool names, 23 were Python function names no tool accepts as a
-`method:` value, and 21 led nowhere — the API-only set this test pins. It fails if either side moves
-alone: wrong tool, wrong method set, a module move, or a function gaining or losing an MCP path.
+`method:` value, and 21 led nowhere — the API-only set this test pins. For a path the catalog gives
+an MCP declaration it fails if either side moves alone: wrong tool, wrong method set, a module move,
+or a function gaining or losing an MCP path. For an API-only entry it checks that the declared
+function resolves and that no surface method dispatches it, which catches a rename but not a
+re-pointing to another function that also exists. A surface method no catalog entry mentions is
+invisible here; `test_surface_methods_absent_from_catalog_are_known` pins the two that exist.
 """
 
 from __future__ import annotations
@@ -70,3 +74,34 @@ def test_declared_mcp_path_dispatches_to_the_same_function(
     assert set(methods) == real_methods, (
         f"{slug}: declares {methods} for {python_function}, MCP exposes {sorted(real_methods)}"
     )
+
+
+def test_every_declared_python_function_resolves() -> None:
+    """A catalog entry naming a function that does not exist would be unrunnable documentation.
+
+    The `mcp: null` branch above only proves that no surface method hits the path; this proves the
+    path itself is real, so a rename on the catalog side fails here.
+    """
+    import importlib
+
+    missing: list[str] = []
+    for slug, _mcp, python_function in entries():
+        module_name, _, attribute = python_function.rpartition(".")
+        try:
+            module = importlib.import_module(module_name)
+        except Exception as exc:  # noqa: BLE001 - the report wants the message
+            missing.append(f"{slug}: {module_name} ({exc.__class__.__name__})")
+            continue
+        if not hasattr(module, attribute):
+            missing.append(f"{slug}: {python_function} does not exist")
+
+    assert not missing, missing
+
+
+def test_surface_methods_absent_from_catalog_are_known() -> None:
+    """Pins the coverage gap: surface methods with no catalog entry, so the count cannot go stale."""
+    mentioned = {python_function for _, _, python_function in entries()}
+    assert {key for key in SURFACE if key not in mentioned} == {
+        "intangible_valuation.utils.formulas.estimate_useful_life",
+        "intangible_valuation.utils.formulas.sensitivity_analysis",
+    }
