@@ -14,11 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const methodPages: MetadataRoute.Sitemap = CATALOG_SLUGS.map((slug) => ({
-    url: `${BASE_URL}/calculator/${slug}`,
-    changeFrequency: "monthly",
-    priority: 0.8,
-  }));
+  // Every catalog method is both a calculator and a documentation page since 2026-11-21. The calculator
+  // URLs were already listed; the docs URLs were not, because before that only four slugs had a page and
+  // the other 64 answered 404 under `dynamicParams = false`.
+  const methodPages: MetadataRoute.Sitemap = CATALOG_SLUGS.flatMap((slug) => [
+    { url: `${BASE_URL}/calculator/${slug}`, changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: `${BASE_URL}/docs/${slug}`, changeFrequency: "monthly" as const, priority: 0.6 },
+  ]);
 
   return [...staticPages, ...methodPages];
 }

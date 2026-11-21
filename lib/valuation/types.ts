@@ -44,7 +44,8 @@ export interface MethodDefinition {
    * the only path. This replaced `mcpTool`, which held the slug in snake_case and was presented to
    * readers as a callable tool name. Of the 68 values it held, 24 named a real method selector, 23
    * named the Python function instead (a `method:` value no tool accepts), and 21 named nothing
-   * reachable over MCP at all. `tests/test_catalog_alignment.py` keeps this honest.
+   * reachable over MCP at all. All 21 were added to the tool surface on 2026-11-21, so every entry
+   * now carries a path or is deliberately null. `tests/test_catalog_alignment.py` keeps it honest.
    */
   mcp: { tool: string; methods: string[] } | null;
   skillReference?: string;

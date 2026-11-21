@@ -2,25 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { FormulaDisplay } from "@/components/valuation/FormulaDisplay";
-import { getCatalogMethod } from "@/lib/valuation/catalog";
+import { CATALOG_SLUGS, getCatalogMethod } from "@/lib/valuation/catalog";
 
-const METHODS: Record<string, {
-  slug: string; name: string; category: string; description: string;
-  formulaTex?: string; textbookReference: string;
-  parameters: { name: string; type: string; required: boolean; description: string }[];
-  pythonCode: string;
-}> = {
-  "present-value": {
-    slug: "present-value", name: "Present Value", category: "core",
-    description: "The present value (PV) function discounts a future cash flow to its value today. This is the most fundamental concept in finance — a dollar today is worth more than a dollar tomorrow.",
-    formulaTex: "PV = FV / (1 + r)^n",
-    textbookReference: "Chapter 2, Section 2.1 — Time Value of Money",
-    parameters: [
-      { name: "future_value", type: "number", required: true, description: "The expected future cash flow amount" },
-      { name: "discount_rate", type: "number", required: true, description: "Annual discount rate (0-1). For startups, typically 0.20-0.35. For mature companies, 0.06-0.12." },
-      { name: "periods", type: "integer", required: true, description: "Number of periods until the cash flow occurs" },
-    ],
-    pythonCode: `from intangible_valuation.core.time_value import present_value
+/**
+ * Runnable samples for the methods whose examples have been written and checked by hand.
+ *
+ * The other catalog methods are documented from the catalog itself — description, formula, textbook
+ * reference, parameter table and the MCP path — and link to the calculator, which calls the same
+ * library function through the API. A generated snippet would carry invented numbers into a page
+ * whose whole purpose is to be copied from, which is worse than no snippet at all.
+ */
+const SAMPLES: Record<string, string> = {
+  "present-value": `from intangible_valuation.core.time_value import present_value
 
 result = present_value(
     future_value=100000,
@@ -28,18 +21,7 @@ result = present_value(
     periods=5
 )
 print(f"Present Value: \${result.value:,.2f}")`,
-  },
-  "capm": {
-    slug: "capm", name: "CAPM", category: "core",
-    description: "The Capital Asset Pricing Model (CAPM) determines the required rate of return for an equity investment based on its systematic risk (beta). This is the most widely used model for estimating cost of equity in valuation.",
-    formulaTex: "r = Rf + Beta * (Rm - Rf)",
-    textbookReference: "Chapter 2, Section 2.3 — Discount Rate Construction",
-    parameters: [
-      { name: "risk_free_rate", type: "number", required: true, description: "Risk-free rate (typically 10-year Treasury yield). The current 10-year is read from Yahoo Finance at GET /v1/rates/risk-free; 0.04 is the illustrative default, not the market" },
-      { name: "beta", type: "number", required: true, description: "Beta coefficient measuring systematic risk. >1 = more volatile than market, <1 = less volatile." },
-      { name: "market_return", type: "number", required: true, description: "Expected market return (S&P 500 long-term avg: ~0.10)" },
-    ],
-    pythonCode: `from intangible_valuation.core.discount_rates import capm_discount_rate
+  capm: `from intangible_valuation.core.discount_rates import capm_discount_rate
 
 result = capm_discount_rate(
     risk_free_rate=0.04,
@@ -47,20 +29,7 @@ result = capm_discount_rate(
     market_return=0.10
 )
 print(f"Cost of Equity: {result.value:.4f} ({result.value*100:.1f}%)")`,
-  },
-  "wacc": {
-    slug: "wacc", name: "WACC", category: "core",
-    description: "Weighted Average Cost of Capital blends the cost of equity and after-tax cost of debt, weighted by their proportions in the capital structure. WACC is the primary discount rate for DCF valuation.",
-    formulaTex: "WACC = (E/V) * Re + (D/V) * Rd * (1 - Tc)",
-    textbookReference: "Chapter 2, Section 2.3 — Discount Rate Construction",
-    parameters: [
-      { name: "equity_value", type: "number", required: true, description: "Market value of equity" },
-      { name: "debt_value", type: "number", required: true, description: "Market value of interest-bearing debt" },
-      { name: "cost_of_equity", type: "number", required: true, description: "Cost of equity from CAPM or build-up" },
-      { name: "cost_of_debt", type: "number", required: true, description: "Pre-tax cost of debt (yield on company's debt)" },
-      { name: "tax_rate", type: "number", required: true, description: "Marginal corporate tax rate" },
-    ],
-    pythonCode: `from intangible_valuation.core.discount_rates import wacc
+  wacc: `from intangible_valuation.core.discount_rates import wacc
 
 result = wacc(
     equity_value=1_000_000,
@@ -70,21 +39,7 @@ result = wacc(
     tax_rate=0.21
 )
 print(f"WACC: {result.value:.4f} ({result.value*100:.2f}%)")`,
-  },
-  "relief-from-royalty": {
-    slug: "relief-from-royalty", name: "Relief from Royalty", category: "income_methods",
-    description: "The Relief from Royalty method values an intangible asset by estimating the hypothetical royalty payments the owner avoids by owning rather than licensing the asset. It is the most common method for IP valuation and is recommended by ASC 805/IFRS 3 for PPA.",
-    formulaTex: "PV = SUM(Royalty_t * (1-T) / (1+r)^t) * TAB",
-    textbookReference: "Chapter 4, Section 4.2 — Relief from Royalty Method",
-    parameters: [
-      { name: "revenue_projections", type: "number[]", required: true, description: "Projected revenues attributable to the asset for each period" },
-      { name: "royalty_rate", type: "number", required: true, description: "Arm's length royalty rate. Typical: 1-8% of revenue depending on industry and asset type." },
-      { name: "discount_rate", type: "number", required: true, description: "Annual discount rate reflecting the risk of the asset's cash flows" },
-      { name: "tax_rate", type: "number", required: true, description: "Effective tax rate for the entity" },
-      { name: "useful_life", type: "integer", required: true, description: "Remaining useful life of the asset in years" },
-      { name: "tab_enabled", type: "boolean", required: false, description: "Apply Tax Amortization Benefit (default: true). TAB accounts for the PV of tax savings from amortizing the asset." },
-    ],
-    pythonCode: `from intangible_valuation.income_methods.relief_from_royalty import relief_from_royalty
+  "relief-from-royalty": `from intangible_valuation.income_methods.relief_from_royalty import relief_from_royalty
 
 result = relief_from_royalty(
     revenue_projections=[1_000_000, 1_100_000, 1_210_000, 1_331_000, 1_464_100],
@@ -97,29 +52,42 @@ result = relief_from_royalty(
 print(f"Asset Value: \${result.value:,.2f}")
 print(f"PV before TAB: \${result.pv_before_tab:,.2f}")
 print(f"TAB Factor: {result.tab_factor:.4f}")`,
-  },
 };
 
 /**
- * Only these four are documented, and `dynamicParams = false` makes an unknown slug a real 404 at
- * routing. Without it, `notFound()` runs after the group's `loading.tsx` has flushed a 200 shell, so
- * `/docs/value-in-use` rendered "Page not found" with status 200 — a soft 404.
+ * Every catalog method, statically generated. `dynamicParams = false` makes anything else a real 404
+ * at routing: without it `notFound()` runs after the group's `loading.tsx` has flushed a 200 shell,
+ * so an unknown path answered 200 with a "Page not found" body.
  */
 export function generateStaticParams() {
-  return Object.keys(METHODS).map((slug) => ({ slug }));
+  return CATALOG_SLUGS.map((slug) => ({ slug }));
 }
 
 export const dynamicParams = false;
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const method = getCatalogMethod(slug);
+  if (!method) return {};
+  // No `alternates` here on purpose. A page-level `alternates` replaces the layout's wholesale, so
+  // adding a canonical would drop the root's hreflang map (x-default, en-GB, zh-Hans, zh-Hant-HK) on
+  // all 68 pages, and a relative canonical without `metadataBase` is emitted verbatim rather than
+  // resolved. Setting `metadataBase` at the root is the right fix for both, and it is not this change.
+  return {
+    title: method.name,
+    description: method.description,
+  };
+}
+
 export default async function MethodDocPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const method = METHODS[slug];
-  const catalogMethod = getCatalogMethod(slug);
-  if (!method || !catalogMethod) notFound();
-  // The MCP path is read from the catalog rather than repeated here: the catalog is what
-  // `tests/test_catalog_alignment.py` proves against the tool surface, and this page is where
-  // the old false claim was rendered, so one copy means a page edit cannot reintroduce it.
-  const mcp = catalogMethod.mcp;
+  const method = getCatalogMethod(slug);
+  if (!method) notFound();
+
+  // Read from the catalog, never repeated here: it is what `tests/test_catalog_alignment.py` proves
+  // against the tool surface, and this page is where the old false claim was rendered.
+  const mcp = method.mcp;
+  const sample = SAMPLES[slug];
 
   return (
     <div>
@@ -169,12 +137,25 @@ export default async function MethodDocPage({ params }: { params: Promise<{ slug
           </div>
         </section>
 
-        <section className="mb-10">
-          <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mb-4">Python Example</h2>
-          <div className="bg-neutral-950 rounded-xl p-4 overflow-x-auto">
-            <pre className="text-green-400 text-sm font-mono">{method.pythonCode}</pre>
-          </div>
-        </section>
+        {sample ? (
+          <section className="mb-10">
+            <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mb-4">Python Example</h2>
+            <div className="bg-neutral-950 rounded-xl p-4 overflow-x-auto">
+              <pre className="text-green-400 text-sm font-mono">{sample}</pre>
+            </div>
+          </section>
+        ) : (
+          <section className="mb-10">
+            <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mb-4">Running it</h2>
+            <div className="card p-4">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                Call <code className="font-mono">{method.pythonFunction}</code> with the parameters above, or use the
+                calculator, which posts the same arguments to the API and shows the step-by-step result. No code sample
+                is published here because this method has none that has been checked by hand.
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="mb-10">
           <h2 className="font-serif text-xl font-semibold text-neutral-900 dark:text-white mb-4">MCP Tool</h2>

@@ -336,7 +336,7 @@ export const CATALOG: MethodDefinition[] = [
     complexity: "intermediate",
     mcp: { tool: "valuation_income_methods", methods: ["contributory_asset_charges"] },
     pythonFunction: "intangible_valuation.income_methods.excess_earnings.contributory_asset_charges",
-    parameters: [json("assets", "JSON array of {name, value, rate} asset objects")],
+    parameters: [json("assets", "JSON array of {type, value, return_rate} asset objects")],
   },
   {
     slug: "incremental-cashflow",
@@ -412,7 +412,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Value an entire patent portfolio",
     textbookReference: "Ch 5",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_ip", methods: ["patent_portfolio"] },
     pythonFunction: "intangible_valuation.asset_types.ip_valuation.patent_portfolio_valuation",
     parameters: [
       json("patents", "JSON array of {value, category?, remaining_life?}"),
@@ -426,7 +426,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Patent valuation using option pricing",
     textbookReference: "Ch 5",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_ip", methods: ["option_pricing"] },
     pythonFunction: "intangible_valuation.asset_types.ip_valuation.option_pricing_patent",
     parameters: [
       n("exercise_cost", "Exercise cost"),
@@ -462,7 +462,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Interbrand-style brand strength assessment",
     textbookReference: "Ch 6",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_market_approach", methods: ["brand_strength_index"] },
     pythonFunction: "intangible_valuation.asset_types.brand_valuation.brand_strength_index",
     parameters: [
       rate("revenue_stability", "Revenue stability score"),
@@ -479,7 +479,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Full Interbrand brand valuation methodology",
     textbookReference: "Ch 6",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_market_approach", methods: ["interbrand_brand"] },
     pythonFunction: "intangible_valuation.asset_types.brand_valuation.interbrand_brand_valuation",
     parameters: [
       n("brand_earnings", "Brand earnings"),
@@ -495,7 +495,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Derive brand royalty rate from market data",
     textbookReference: "Ch 6",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_royalty_analysis", methods: ["brand_royalty_from_comparables"] },
     pythonFunction: "intangible_valuation.asset_types.brand_valuation.brand_royalty_rate_from_comparables",
     parameters: [
       arr("comparable_rates", "Comparable brand royalty rates (comma-separated)"),
@@ -580,7 +580,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Model technology obsolescence",
     textbookReference: "Ch 7",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_technology", methods: ["obsolescence_curve"] },
     pythonFunction: "intangible_valuation.asset_types.technology_valuation.technology_obsolescence_curve",
     parameters: [n("initial_value", "Initial value"), rate("obsolescence_rate", "Obsolescence rate"), i("periods", "Number of periods")],
   },
@@ -591,7 +591,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Value proprietary algorithms",
     textbookReference: "Ch 7",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_technology", methods: ["algorithm"] },
     pythonFunction: "intangible_valuation.asset_types.technology_valuation.algorithm_valuation",
     parameters: [
       n("computational_savings", "Computational savings"),
@@ -661,7 +661,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Calculate customer lifetime value",
     textbookReference: "Ch 8",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_customer", methods: ["lifetime_value"] },
     pythonFunction: "intangible_valuation.asset_types.customer_valuation.customer_lifetime_value",
     parameters: [
       n("revenue_per_period", "Revenue per period"),
@@ -677,7 +677,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Value order backlogs",
     textbookReference: "Ch 8",
     complexity: "basic",
-    mcp: null,
+    mcp: { tool: "valuation_customer", methods: ["backlog"] },
     pythonFunction: "intangible_valuation.asset_types.customer_valuation.backlog_valuation",
     parameters: [
       json("contract_backlog", "JSON array of backlog contract objects"),
@@ -692,7 +692,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Analyze impact of customer churn on value",
     textbookReference: "Ch 8",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_customer", methods: ["churn_impact"] },
     pythonFunction: "intangible_valuation.asset_types.customer_valuation.churn_impact_analysis",
     parameters: [
       i("current_customers", "Current customers"),
@@ -762,7 +762,7 @@ export const CATALOG: MethodDefinition[] = [
     parameters: [
       n("purchase_price", "Purchase price"),
       n("tangible_assets_fv", "Fair value of tangible assets"),
-      json("identified_intangibles", "JSON array of identified intangible {name, value}"),
+      json("identified_intangibles", "Identified intangibles {name, value, method}"),
     ],
   },
   {
@@ -772,7 +772,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Analysis of bargain purchase (negative goodwill)",
     textbookReference: "Ch 10, ASC 805",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_goodwill_ppa", methods: ["bargain_purchase"] },
     pythonFunction: "intangible_valuation.advanced.purchase_price_alloc.bargain_purchase_analysis",
     parameters: [n("purchase_price", "Purchase price"), n("fair_value_net_assets", "Fair value of net assets")],
   },
@@ -783,9 +783,9 @@ export const CATALOG: MethodDefinition[] = [
     description: "Value earn-outs and contingent payments",
     textbookReference: "Ch 10, ASC 805",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_goodwill_ppa", methods: ["contingent_consideration"] },
     pythonFunction: "intangible_valuation.advanced.purchase_price_alloc.contingent_consideration_valuation",
-    parameters: [json("scenarios", "JSON array of scenario {name, probability, payout}"), rate("discount_rate", "Discount rate")],
+    parameters: [json("scenarios", "Scenario objects {probability, payment, period?}; probabilities sum to 1.0"), rate("discount_rate", "Discount rate")],
   },
   {
     slug: "deferred-tax-liability-ppa",
@@ -794,9 +794,9 @@ export const CATALOG: MethodDefinition[] = [
     description: "DTL calculation for PPA",
     textbookReference: "Ch 10, ASC 805",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_goodwill_ppa", methods: ["deferred_tax_liability"] },
     pythonFunction: "intangible_valuation.advanced.purchase_price_alloc.deferred_tax_liability_ppa",
-    parameters: [json("identified_intangibles", "JSON array of identified intangible {name, value}"), n("tax_basis", "Tax basis"), rate("statutory_rate", "Statutory tax rate")],
+    parameters: [json("identified_intangibles", "Identified intangibles {name, fair_value}"), n("tax_basis", "Tax basis"), rate("statutory_rate", "Statutory tax rate")],
   },
 
   // ---- Advanced — Impairment ----------------------------------------------
@@ -853,7 +853,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Calculate value in use for impairment",
     textbookReference: "Ch 11, IAS 36",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_impairment", methods: ["value_in_use"] },
     pythonFunction: "intangible_valuation.advanced.impairment_testing.value_in_use",
     parameters: [
       arr("cash_flow_projections", "Projected cash flows (comma-separated)"),
@@ -868,7 +868,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Calculate FVLCS for impairment",
     textbookReference: "Ch 11, IAS 36",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_impairment", methods: ["fair_value_less_costs"] },
     pythonFunction: "intangible_valuation.advanced.impairment_testing.fair_value_less_costs_to_sell",
     parameters: [n("fair_value", "Fair value"), n("disposal_costs", "Disposal costs")],
   },
@@ -879,13 +879,13 @@ export const CATALOG: MethodDefinition[] = [
     description: "Cash Generating Unit impairment test",
     textbookReference: "Ch 11, IAS 36",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_impairment", methods: ["cgu_impairment"] },
     pythonFunction: "intangible_valuation.advanced.impairment_testing.cash_generating_unit_impairment",
     parameters: [
       n("cgu_carrying_value", "CGU carrying value"),
       n("cgu_recoverable_amount", "CGU recoverable amount"),
       n("goodwill_allocated", "Goodwill allocated to CGU"),
-      json("other_assets", "JSON array of other asset {name, value}"),
+      json("other_assets", "Other assets {name, carrying_value}; at least one"),
     ],
   },
 
@@ -918,7 +918,7 @@ export const CATALOG: MethodDefinition[] = [
     mcp: { tool: "valuation_simulation", methods: ["monte_carlo_sensitivity"] },
     pythonFunction: "intangible_valuation.advanced.monte_carlo.monte_carlo_sensitivity",
     parameters: [
-      { name: "valuation_fn", type: "string", required: true, description: "Valuation function name (e.g. present_value, wacc, capm_discount_rate)" },
+      { name: "valuation_fn", type: "string", required: true, description: "Function the simulation calls (e.g. capm_discount_rate, wacc). Required on both surfaces: there is no default valuation. Only the parameters listed in distributions are varied, so its other parameters keep their base_params values." },
       json("base_params", "JSON object of base parameter values"),
       json("distributions", "JSON object mapping parameter to {distribution, params}"),
       i("iterations", "Number of iterations", { required: false, default: 10000 }),
@@ -935,7 +935,7 @@ export const CATALOG: MethodDefinition[] = [
     mcp: { tool: "valuation_simulation", methods: ["monte_carlo"] },
     pythonFunction: "intangible_valuation.core.statistics.monte_carlo_valuation",
     parameters: [
-      { name: "valuation_fn", type: "string", required: true, description: "Valuation function name (e.g. present_value, wacc, capm_discount_rate)" },
+      { name: "valuation_fn", type: "string", required: true, description: "Function the simulation calls. Every parameter of it must appear in distributions, and only continuous distributions exist, so present_value (integer periods) cannot be used; capm_discount_rate and wacc can" },
       json("input_distributions", "JSON array of {name, distribution, params}"),
       i("iterations", "Number of iterations", { required: false, default: 10000 }),
       i("seed", "Random seed", { required: false }),
@@ -959,10 +959,10 @@ export const CATALOG: MethodDefinition[] = [
     description: "Correlated variable Monte Carlo simulation",
     textbookReference: "Ch 17",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_simulation", methods: ["monte_carlo_correlated"] },
     pythonFunction: "intangible_valuation.core.statistics.monte_carlo_with_correlation",
     parameters: [
-      { name: "valuation_fn", type: "string", required: true, description: "Valuation function name (e.g. present_value, wacc, capm_discount_rate)" },
+      { name: "valuation_fn", type: "string", required: true, description: "Function the simulation calls (e.g. capm_discount_rate, wacc). Every parameter of it must appear in distributions; only continuous distributions exist, so present_value (integer periods) cannot be used." },
       json("distributions", "JSON array of {name, distribution, params}"),
       json("correlation_matrix", "JSON 2D array correlation matrix"),
       i("iterations", "Number of iterations", { required: false, default: 10000 }),
@@ -976,7 +976,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Generate tornado chart for sensitivity analysis",
     textbookReference: "Ch 17",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_simulation", methods: ["tornado"] },
     pythonFunction: "intangible_valuation.core.statistics.sensitivity_tornado",
     parameters: [
       { name: "function_name", type: "string", required: true, description: "Name of the function to analyze" },
@@ -991,7 +991,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Multi-scenario valuation analysis",
     textbookReference: "Ch 17",
     complexity: "intermediate",
-    mcp: null,
+    mcp: { tool: "valuation_simulation", methods: ["scenario"] },
     pythonFunction: "intangible_valuation.core.statistics.scenario_analysis",
     parameters: [json("scenarios", "JSON array of {name, probability, params, function_name}")],
   },
@@ -1054,7 +1054,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Transfer pricing profit split",
     textbookReference: "Ch 16, OECD TP",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_income_methods", methods: ["profit_split"] },
     pythonFunction: "intangible_valuation.advanced.royalty_benchmark.profit_split_method",
     parameters: [
       rate("licensor_contribution_pct", "Licensor contribution percentage"),
@@ -1069,7 +1069,7 @@ export const CATALOG: MethodDefinition[] = [
     description: "Analytical approach to valuation",
     textbookReference: "Appendix A",
     complexity: "advanced",
-    mcp: null,
+    mcp: { tool: "valuation_income_methods", methods: ["analytical_method"] },
     pythonFunction: "intangible_valuation.advanced.royalty_benchmark.analytical_method_valuation",
     parameters: [
       n("advantage_margin", "Advantage margin"),
