@@ -175,9 +175,7 @@ PARAMS: dict[str, dict[str, Any]] = {
     # market approach
     "comparables": {
         "type": "array:object",
-        "description": (
-            "Comparable transactions, each {sale_price, revenue, asset_type}."
-        ),
+        "description": ("Comparable transactions, each {sale_price, revenue, asset_type}."),
     },
     "subject_revenue": {"type": "number", "description": "Subject company revenue, in currency units."},
     "adjustments": {
@@ -221,9 +219,7 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "assets": {
         "type": "array:object",
-        "description": (
-            "Contributory assets, each {type, value, return_rate}."
-        ),
+        "description": ("Contributory assets, each {type, value, return_rate}."),
     },
     # IP
     "remaining_life": {"type": "integer", "description": "Remaining legal/economic life of the patent in years (≥ 0)."},
@@ -446,15 +442,11 @@ PARAMS: dict[str, dict[str, Any]] = {
     "fixed_parameters": {"type": "object", "description": "Values for all other parameters, held constant."},
     "advantage_margin": {
         "type": "number",
-        "description": (
-            "Margin attributable to the advantage over alternative technology, as a decimal (0.20 = 20%)."
-        ),
+        "description": ("Margin attributable to the advantage over alternative technology, as a decimal (0.20 = 20%)."),
     },
     "brand_earnings": {
         "type": "number",
-        "description": (
-            "Profit attributable to the brand, in currency units."
-        ),
+        "description": ("Profit attributable to the brand, in currency units."),
     },
     "brand_strength_adjustment": {
         "type": "number",
@@ -464,57 +456,39 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "brand_strength_score": {
         "type": "number",
-        "description": (
-            "Composite brand strength score on a 0-100 scale."
-        ),
+        "description": ("Composite brand strength score on a 0-100 scale."),
     },
     "cgu_carrying_value": {
         "type": "number",
-        "description": (
-            "Carrying value of the cash-generating unit, in currency units."
-        ),
+        "description": ("Carrying value of the cash-generating unit, in currency units."),
     },
     "cgu_recoverable_amount": {
         "type": "number",
-        "description": (
-            "Recoverable amount of the cash-generating unit, in currency units."
-        ),
+        "description": ("Recoverable amount of the cash-generating unit, in currency units."),
     },
     "churn_rate_after": {
         "type": "number",
-        "description": (
-            "Churn rate after the change, as a decimal (0.10 = 10%)."
-        ),
+        "description": ("Churn rate after the change, as a decimal (0.10 = 10%)."),
     },
     "churn_rate_before": {
         "type": "number",
-        "description": (
-            "Churn rate before the change, as a decimal (0.10 = 10%)."
-        ),
+        "description": ("Churn rate before the change, as a decimal (0.10 = 10%)."),
     },
     "comparable_rates": {
         "type": "array:number",
-        "description": (
-            "Comparable brand royalty rates as decimals (0.05 = 5%)."
-        ),
+        "description": ("Comparable brand royalty rates as decimals (0.05 = 5%)."),
     },
     "competitive_advantage_years": {
         "type": "integer",
-        "description": (
-            "Years the competitive advantage is expected to last."
-        ),
+        "description": ("Years the competitive advantage is expected to last."),
     },
     "computational_savings": {
         "type": "number",
-        "description": (
-            "Annual computational cost saved, in currency units."
-        ),
+        "description": ("Annual computational cost saved, in currency units."),
     },
     "contract_backlog": {
         "type": "array:object",
-        "description": (
-            "Backlog contracts as JSON objects with `value` and an optional `period` (default 1)."
-        ),
+        "description": ("Backlog contracts as JSON objects with `value` and an optional `period` (default 1)."),
     },
     "correlated_distributions": {
         "type": "array:object",
@@ -532,27 +506,19 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "current_customers": {
         "type": "integer",
-        "description": (
-            "Number of customers before the change."
-        ),
+        "description": ("Number of customers before the change."),
     },
     "customer_loyalty": {
         "type": "number",
-        "description": (
-            "Customer loyalty score from 0 to 1."
-        ),
+        "description": ("Customer loyalty score from 0 to 1."),
     },
     "deployment_scale": {
         "type": "number",
-        "description": (
-            "Deployment scale multiplier applied to the algorithm's savings."
-        ),
+        "description": ("Deployment scale multiplier applied to the algorithm's savings."),
     },
     "disposal_costs": {
         "type": "number",
-        "description": (
-            "Costs of disposal, in currency units."
-        ),
+        "description": ("Costs of disposal, in currency units."),
     },
     "diversification_factor": {
         "type": "number",
@@ -563,117 +529,79 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "exercise_cost": {
         "type": "number",
-        "description": (
-            "Cost to exercise the option, in currency units."
-        ),
+        "description": ("Cost to exercise the option, in currency units."),
     },
     "expected_value": {
         "type": "number",
-        "description": (
-            "Expected value of the underlying asset, in currency units."
-        ),
+        "description": ("Expected value of the underlying asset, in currency units."),
     },
     "fair_value_net_assets": {
         "type": "number",
-        "description": (
-            "Fair value of the acquired net assets, in currency units."
-        ),
+        "description": ("Fair value of the acquired net assets, in currency units."),
     },
     "geographic_reach": {
         "type": "number",
-        "description": (
-            "Geographic reach score from 0 to 1."
-        ),
+        "description": ("Geographic reach score from 0 to 1."),
     },
     "goodwill_allocated": {
         "type": "number",
-        "description": (
-            "Goodwill allocated to the cash-generating unit, in currency units."
-        ),
+        "description": ("Goodwill allocated to the cash-generating unit, in currency units."),
     },
     "initial_value": {
         "type": "number",
-        "description": (
-            "Value at the start of the period, in currency units."
-        ),
+        "description": ("Value at the start of the period, in currency units."),
     },
     "investment_level": {
         "type": "number",
-        "description": (
-            "Brand investment level score from 0 to 1."
-        ),
+        "description": ("Brand investment level score from 0 to 1."),
     },
     "licensee_contribution_pct": {
         "type": "number",
-        "description": (
-            "Licensee's contribution to the profit, as a decimal (0.40 = 40%)."
-        ),
+        "description": ("Licensee's contribution to the profit, as a decimal (0.40 = 40%)."),
     },
     "licensor_contribution_pct": {
         "type": "number",
-        "description": (
-            "Licensor's contribution to the profit, as a decimal (0.60 = 60%)."
-        ),
+        "description": ("Licensor's contribution to the profit, as a decimal (0.60 = 60%)."),
     },
     "margin": {
         "type": "number",
-        "description": (
-            "Profit margin per period, as a decimal (0.20 = 20%)."
-        ),
+        "description": ("Profit margin per period, as a decimal (0.20 = 20%)."),
     },
     "market_share": {
         "type": "number",
-        "description": (
-            "Market share score from 0 to 1."
-        ),
+        "description": ("Market share score from 0 to 1."),
     },
     "other_assets": {
         "type": "array:object",
-        "description": (
-            "Other assets as JSON objects with `name` and `carrying_value`; at least one is required."
-        ),
+        "description": ("Other assets as JSON objects with `name` and `carrying_value`; at least one is required."),
     },
     "parameter_ranges": {
         "type": "object",
-        "description": (
-            "JSON object mapping each parameter name to the list of values to test."
-        ),
+        "description": ("JSON object mapping each parameter name to the list of values to test."),
     },
     "patents": {
         "type": "array:object",
-        "description": (
-            "Patents as JSON objects with `value`, and optionally `category` and `remaining_life`."
-        ),
+        "description": ("Patents as JSON objects with `value`, and optionally `category` and `remaining_life`."),
     },
     "probability_of_completion": {
         "type": "number",
-        "description": (
-            "Probability the backlog is delivered, as a decimal (0.90 = 90%)."
-        ),
+        "description": ("Probability the backlog is delivered, as a decimal (0.90 = 90%)."),
     },
     "revenue_per_customer": {
         "type": "number",
-        "description": (
-            "Revenue per customer per period, in currency units."
-        ),
+        "description": ("Revenue per customer per period, in currency units."),
     },
     "revenue_per_period": {
         "type": "number",
-        "description": (
-            "Revenue per customer per period, in currency units."
-        ),
+        "description": ("Revenue per customer per period, in currency units."),
     },
     "revenue_stability": {
         "type": "number",
-        "description": (
-            "Revenue stability score from 0 to 1."
-        ),
+        "description": ("Revenue stability score from 0 to 1."),
     },
     "role_of_brand_index": {
         "type": "number",
-        "description": (
-            "Share of brand earnings attributable to the brand, as a decimal (0.50 = 50%)."
-        ),
+        "description": ("Share of brand earnings attributable to the brand, as a decimal (0.50 = 50%)."),
     },
     "scenarios": {
         "type": "array:object",
@@ -683,33 +611,23 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "statutory_rate": {
         "type": "number",
-        "description": (
-            "Statutory tax rate as a decimal (0.25 = 25%)."
-        ),
+        "description": ("Statutory tax rate as a decimal (0.25 = 25%)."),
     },
     "tax_basis": {
         "type": "number",
-        "description": (
-            "Tax basis of the identified intangibles, in currency units."
-        ),
+        "description": ("Tax basis of the identified intangibles, in currency units."),
     },
     "terminal_growth_rate": {
         "type": "number",
-        "description": (
-            "Perpetual growth applied after the projections, as a decimal (0.02 = 2%)."
-        ),
+        "description": ("Perpetual growth applied after the projections, as a decimal (0.02 = 2%)."),
     },
     "time_to_expiry": {
         "type": "number",
-        "description": (
-            "Time to expiry, in years."
-        ),
+        "description": ("Time to expiry, in years."),
     },
     "total_profit": {
         "type": "number",
-        "description": (
-            "Total profit to be split, in currency units."
-        ),
+        "description": ("Total profit to be split, in currency units."),
     },
     "valuation_fn": {
         "type": "string",
@@ -724,9 +642,7 @@ PARAMS: dict[str, dict[str, Any]] = {
     },
     "volume": {
         "type": "number",
-        "description": (
-            "Expected volume of units."
-        ),
+        "description": ("Expected volume of units."),
     },
 }
 
@@ -1015,14 +931,25 @@ TOOLS: list[dict[str, Any]] = [
                 "Composite brand strength score on a 0-100 scale.",
                 "intangible_valuation.asset_types.brand_valuation",
                 "brand_strength_index",
-                {"revenue_stability": "revenue_stability", "market_share": "market_share", "geographic_reach": "geographic_reach", "customer_loyalty": "customer_loyalty", "investment_level": "investment_level"},
+                {
+                    "revenue_stability": "revenue_stability",
+                    "market_share": "market_share",
+                    "geographic_reach": "geographic_reach",
+                    "customer_loyalty": "customer_loyalty",
+                    "investment_level": "investment_level",
+                },
             ),
             _method(
                 "interbrand_brand",
                 "Brand valued by the Interbrand methodology.",
                 "intangible_valuation.asset_types.brand_valuation",
                 "interbrand_brand_valuation",
-                {"brand_earnings": "brand_earnings", "role_of_brand_index": "role_of_brand_index", "brand_strength_score": "brand_strength_score", "discount_rate": "discount_rate"},
+                {
+                    "brand_earnings": "brand_earnings",
+                    "role_of_brand_index": "role_of_brand_index",
+                    "brand_strength_score": "brand_strength_score",
+                    "discount_rate": "discount_rate",
+                },
             ),
         ],
     },
@@ -1107,14 +1034,23 @@ TOOLS: list[dict[str, Any]] = [
                 "Royalty by the profit split approach.",
                 "intangible_valuation.advanced.royalty_benchmark",
                 "profit_split_method",
-                {"licensor_contribution_pct": "licensor_contribution_pct", "licensee_contribution_pct": "licensee_contribution_pct", "total_profit": "total_profit"},
+                {
+                    "licensor_contribution_pct": "licensor_contribution_pct",
+                    "licensee_contribution_pct": "licensee_contribution_pct",
+                    "total_profit": "total_profit",
+                },
             ),
             _method(
                 "analytical_method",
                 "Royalty rate by the analytical method.",
                 "intangible_valuation.advanced.royalty_benchmark",
                 "analytical_method_valuation",
-                {"advantage_margin": "advantage_margin", "volume": "volume", "discount_rate": "discount_rate", "economic_life": "economic_life"},
+                {
+                    "advantage_margin": "advantage_margin",
+                    "volume": "volume",
+                    "discount_rate": "discount_rate",
+                    "economic_life": "economic_life",
+                },
             ),
         ],
         "constraints": (
@@ -1204,7 +1140,13 @@ TOOLS: list[dict[str, Any]] = [
                 "Patent valued as a real option by Black-Scholes approximation.",
                 "intangible_valuation.asset_types.ip_valuation",
                 "option_pricing_patent",
-                {"exercise_cost": "exercise_cost", "expected_value": "expected_value", "volatility": "volatility", "time_to_expiry": "time_to_expiry", "risk_free_rate": "risk_free_rate"},
+                {
+                    "exercise_cost": "exercise_cost",
+                    "expected_value": "expected_value",
+                    "volatility": "volatility",
+                    "time_to_expiry": "time_to_expiry",
+                    "risk_free_rate": "risk_free_rate",
+                },
             ),
         ],
         "constraints": "cash_flow_projections for patent run over remaining_life.",
@@ -1291,7 +1233,12 @@ TOOLS: list[dict[str, Any]] = [
                 "ML algorithm valued from computational savings and competitive advantage.",
                 "intangible_valuation.asset_types.technology_valuation",
                 "algorithm_valuation",
-                {"computational_savings": "computational_savings", "deployment_scale": "deployment_scale", "competitive_advantage_years": "competitive_advantage_years", "discount_rate": "discount_rate"},
+                {
+                    "computational_savings": "computational_savings",
+                    "deployment_scale": "deployment_scale",
+                    "competitive_advantage_years": "competitive_advantage_years",
+                    "discount_rate": "discount_rate",
+                },
             ),
         ],
         "constraints": "cash_flow_projections for developed_technology run over the remaining useful life.",
@@ -1362,21 +1309,36 @@ TOOLS: list[dict[str, Any]] = [
                 "Customer lifetime value, infinite-horizon form.",
                 "intangible_valuation.asset_types.customer_valuation",
                 "customer_lifetime_value",
-                {"revenue_per_period": "revenue_per_period", "retention_rate": "retention_rate", "discount_rate": "discount_rate", "margin": "margin"},
+                {
+                    "revenue_per_period": "revenue_per_period",
+                    "retention_rate": "retention_rate",
+                    "discount_rate": "discount_rate",
+                    "margin": "margin",
+                },
             ),
             _method(
                 "backlog",
                 "Order backlog as risk-adjusted present value of contracted revenue.",
                 "intangible_valuation.asset_types.customer_valuation",
                 "backlog_valuation",
-                {"contract_backlog": "contract_backlog", "probability_of_completion": "probability_of_completion", "discount_rate": "discount_rate"},
+                {
+                    "contract_backlog": "contract_backlog",
+                    "probability_of_completion": "probability_of_completion",
+                    "discount_rate": "discount_rate",
+                },
             ),
             _method(
                 "churn_impact",
                 "Value impact of a change in the churn rate.",
                 "intangible_valuation.asset_types.customer_valuation",
                 "churn_impact_analysis",
-                {"current_customers": "current_customers", "churn_rate_before": "churn_rate_before", "churn_rate_after": "churn_rate_after", "revenue_per_customer": "revenue_per_customer", "discount_rate": "discount_rate"},
+                {
+                    "current_customers": "current_customers",
+                    "churn_rate_before": "churn_rate_before",
+                    "churn_rate_after": "churn_rate_after",
+                    "revenue_per_customer": "revenue_per_customer",
+                    "discount_rate": "discount_rate",
+                },
             ),
         ],
     },
@@ -1493,7 +1455,11 @@ TOOLS: list[dict[str, Any]] = [
                 "Deferred tax liability from a PPA step-up in basis.",
                 "intangible_valuation.advanced.purchase_price_alloc",
                 "deferred_tax_liability_ppa",
-                {"identified_intangibles": "identified_intangibles", "tax_basis": "tax_basis", "statutory_rate": "statutory_rate"},
+                {
+                    "identified_intangibles": "identified_intangibles",
+                    "tax_basis": "tax_basis",
+                    "statutory_rate": "statutory_rate",
+                },
             ),
         ],
         "constraints": (
@@ -1545,7 +1511,11 @@ TOOLS: list[dict[str, Any]] = [
                 "IAS 36 value in use from discounted cash flows.",
                 "intangible_valuation.advanced.impairment_testing",
                 "value_in_use",
-                {"cash_flow_projections": "cash_flow_projections", "terminal_growth_rate": "terminal_growth_rate", "discount_rate": "discount_rate"},
+                {
+                    "cash_flow_projections": "cash_flow_projections",
+                    "terminal_growth_rate": "terminal_growth_rate",
+                    "discount_rate": "discount_rate",
+                },
             ),
             _method(
                 "fair_value_less_costs",
@@ -1560,7 +1530,12 @@ TOOLS: list[dict[str, Any]] = [
                 "IAS 36 impairment loss allocated at the cash-generating-unit level.",
                 "intangible_valuation.advanced.impairment_testing",
                 "cash_generating_unit_impairment",
-                {"cgu_carrying_value": "cgu_carrying_value", "cgu_recoverable_amount": "cgu_recoverable_amount", "goodwill_allocated": "goodwill_allocated", "other_assets": "other_assets"},
+                {
+                    "cgu_carrying_value": "cgu_carrying_value",
+                    "cgu_recoverable_amount": "cgu_recoverable_amount",
+                    "goodwill_allocated": "goodwill_allocated",
+                    "other_assets": "other_assets",
+                },
             ),
         ],
         "constraints": (
@@ -1680,7 +1655,11 @@ TOOLS: list[dict[str, Any]] = [
                 "Monte Carlo with correlated input variables.",
                 "intangible_valuation.core.statistics",
                 "monte_carlo_with_correlation",
-                {"valuation_fn": "valuation_fn", "distributions": "correlated_distributions", "correlation_matrix": "correlation_matrix"},
+                {
+                    "valuation_fn": "valuation_fn",
+                    "distributions": "correlated_distributions",
+                    "correlation_matrix": "correlation_matrix",
+                },
                 {"iterations": "iterations", "seed": "seed"},
                 adapter="mc_correlated",
             ),
@@ -1689,7 +1668,11 @@ TOOLS: list[dict[str, Any]] = [
                 "Tornado data for multi-parameter sensitivity analysis.",
                 "intangible_valuation.core.statistics",
                 "sensitivity_tornado",
-                {"function_name": "function_name", "base_params": "base_params", "parameter_ranges": "parameter_ranges"},
+                {
+                    "function_name": "function_name",
+                    "base_params": "base_params",
+                    "parameter_ranges": "parameter_ranges",
+                },
             ),
             _method(
                 "scenario",
