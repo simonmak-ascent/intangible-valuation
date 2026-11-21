@@ -5,6 +5,14 @@ import { CATALOG_SLUGS, getCatalogMethod } from "@/lib/valuation/catalog";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://intangible-valuation.ascent-partners.com";
 
+/**
+ * Unknown methods must 404 at routing, not render: `dynamicParams` defaults to true, so any
+ * `[method]` resolved and `/calculator/nope` answered 200 with `MethodCalculator`'s own
+ * "Method Not Found" card. (`docs/[slug]` had the harder version: there `notFound()` did run, but
+ * after the group's `loading.tsx` had flushed a 200 shell.)
+ */
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return CATALOG_SLUGS.map((method) => ({ method }));
 }

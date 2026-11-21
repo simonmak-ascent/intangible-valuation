@@ -100,6 +100,17 @@ print(f"TAB Factor: {result.tab_factor:.4f}")`,
   },
 };
 
+/**
+ * Only these four are documented, and `dynamicParams = false` makes an unknown slug a real 404 at
+ * routing. Without it, `notFound()` runs after the group's `loading.tsx` has flushed a 200 shell, so
+ * `/docs/value-in-use` rendered "Page not found" with status 200 — a soft 404.
+ */
+export function generateStaticParams() {
+  return Object.keys(METHODS).map((slug) => ({ slug }));
+}
+
+export const dynamicParams = false;
+
 export default async function MethodDocPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const method = METHODS[slug];
