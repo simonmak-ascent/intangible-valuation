@@ -2,7 +2,24 @@
 
 from typing import Final
 
-# Default rates
+# Default rates.
+#
+# These are FIXED ILLUSTRATIVE VALUES, not market data. A caller valuing at a date should pass the
+# rate for that date; the library deliberately performs no network I/O, so nothing here can track the
+# market on its own.
+#
+# Measured 2026-11-21 against the US Treasury par-yield curve (EODHD `ust/yield-rates`, curve dated
+# 2026-11-19): the 10-year was 5.04%, against the 4.00% below — a 1.04pp gap. With beta 1.2, Rf 4.00%
+# and a 6.00% ERP the rate is 11.20%; holding that ERP while marking Rf to 5.04% — so Rm becomes
+# 11.04% — gives 12.24%, and discounting a level five-year stream at 11.20% overstates its present
+# value by 2.62%, more on anything with a longer tail. `capm_discount_rate` has no default arguments:
+# passing risk_free_rate=0.0504 with market_return=0.10 (the value of DEFAULT_MARKET_RETURN) gives
+# 10.99%, not 12.24 — the ERP is what is held fixed above.
+#
+# Kept as they are on purpose: nothing in this library imports them (callers pass their own rate), so
+# changing them would not move an output here; the exposure is a consumer that copied 0.04 and 0.06
+# into its own call. To refresh, `GET https://eodhd.com/api/ust/yield-rates?api_token=…`
+# and read the latest dated curve; the equity risk premium is a judgement, not a quote.
 DEFAULT_RISK_FREE_RATE: Final[float] = 0.04
 DEFAULT_EQUITY_RISK_PREMIUM: Final[float] = 0.06
 DEFAULT_TAX_RATE: Final[float] = 0.25

@@ -75,9 +75,12 @@ COPY --from=docs --chown=1001:1001 /site ./public/docs
 # component, not a suppression.
 #
 # Layer truth, so nobody is surprised later: this RUN adds a whiteout. The bytes (18 MB of npm) stay in
-# the base layer and still travel in the image; trivy applies whiteouts, so the findings leave the
-# report, which is the intent. A runtime base that never carried npm is the only way to remove them
-# from the layer history as well.
+# the base layer and still travel in the image. A layer scan applies the whiteout, so the findings leave
+# its report, which is the intent. The web publish gate no longer performs a layer scan: on
+# `apg-ecs-01` it scans a `docker export` tree (`.github/workflows/image.yml`), where these files are simply
+# absent, so for these findings it
+# reaches the same report by a different route. A runtime base that never carried npm is the only way
+# to remove them from the layer history as well.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
            /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
            /usr/local/bin/yarn /usr/local/bin/yarnpkg
