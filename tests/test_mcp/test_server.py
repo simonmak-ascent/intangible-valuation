@@ -62,7 +62,9 @@ class TestServerToolDiscovery:
             desc = tool["description"]
             assert "Method selects the formula" in desc
             assert "omit the rest" in desc
-            assert "rounded to 2 decimals" in desc
+            # The description used to claim 2-decimal rounding, which nothing did; the claim now
+            # matches the code, and `test_extended_methods_dispatch` pins the behaviour.
+            assert "carry the library's own precision" in desc
             assert "returns an error instead of a value" in desc
             assert "no external calls" in desc
 
@@ -141,7 +143,14 @@ class TestDispatch:
             "valuation_simulation",
             {
                 "method": "monte_carlo",
-                "input_distributions": [{"name": "a", "distribution": "normal", "params": {"mean": 1.0, "std": 0.1}}],
+                # valuation_fn is required: summing the parameters is not a valuation, so the surface
+                # has no default. These cases only care about serialisation and schema conformance.
+                "valuation_fn": "capm_discount_rate",
+                "input_distributions": [
+                    {"name": "risk_free_rate", "distribution": "normal", "params": {"mean": 0.04, "std": 0.005}},
+                    {"name": "beta", "distribution": "normal", "params": {"mean": 1.2, "std": 0.1}},
+                    {"name": "market_return", "distribution": "normal", "params": {"mean": 0.10, "std": 0.01}},
+                ],
                 "iterations": 1000,
                 "seed": 7,
             },
@@ -195,7 +204,14 @@ class TestProtocolStructuredOutput:
             "valuation_simulation",
             {
                 "method": "monte_carlo",
-                "input_distributions": [{"name": "a", "distribution": "normal", "params": {"mean": 1.0, "std": 0.1}}],
+                # valuation_fn is required: summing the parameters is not a valuation, so the surface
+                # has no default. These cases only care about serialisation and schema conformance.
+                "valuation_fn": "capm_discount_rate",
+                "input_distributions": [
+                    {"name": "risk_free_rate", "distribution": "normal", "params": {"mean": 0.04, "std": 0.005}},
+                    {"name": "beta", "distribution": "normal", "params": {"mean": 1.2, "std": 0.1}},
+                    {"name": "market_return", "distribution": "normal", "params": {"mean": 0.10, "std": 0.01}},
+                ],
                 "iterations": 1000,
                 "seed": 7,
             },

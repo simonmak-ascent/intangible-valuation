@@ -29,34 +29,11 @@ describe("Valuation method catalog", () => {
     }
   });
 
-  it("names exactly the methods that only the HTTP API serves", () => {
-    // These 21 catalog methods have no MCP path at all: the field that used to be `mcpTool` said
-    // otherwise for every one of them. Pinned so a method silently gaining or losing MCP coverage
-    // fails here; `tests/test_catalog_alignment.py` proves the mapping against the real tool surface.
-    const apiOnly = CATALOG.filter((m) => m.mcp === null).map((m) => m.slug).sort();
-    expect(apiOnly).toEqual([
-      "algorithm-valuation",
-      "analytical-method-valuation",
-      "backlog-valuation",
-      "bargain-purchase-analysis",
-      "brand-royalty-rate-from-comparables",
-      "brand-strength-index",
-      "cash-generating-unit-impairment",
-      "churn-impact-analysis",
-      "contingent-consideration-valuation",
-      "customer-lifetime-value",
-      "deferred-tax-liability-ppa",
-      "fair-value-less-costs-to-sell",
-      "interbrand-brand-valuation",
-      "monte-carlo-with-correlation",
-      "option-pricing-patent",
-      "patent-portfolio-valuation",
-      "profit-split-method",
-      "scenario-analysis",
-      "sensitivity-tornado",
-      "technology-obsolescence-curve",
-      "value-in-use",
-    ]);
+  it("leaves no method without an MCP path", () => {
+    // The 21 that used to have none were added to the tool surface on 2026-11-21, and
+    // `tests/test_catalog_alignment.py` proves each of the 68 mappings against the dispatcher.
+    const apiOnly = CATALOG.filter((m) => m.mcp === null).map((m) => m.slug);
+    expect(apiOnly).toEqual([]);
   });
 
   it("declares a non-empty parameters schema for every method", () => {

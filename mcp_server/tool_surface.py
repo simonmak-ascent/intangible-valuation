@@ -175,12 +175,16 @@ PARAMS: dict[str, dict[str, Any]] = {
     # market approach
     "comparables": {
         "type": "array:object",
-        "description": "Comparable transactions, each {revenue, multiple}.",
+        "description": (
+            "Comparable transactions, each {sale_price, revenue, asset_type}."
+        ),
     },
     "subject_revenue": {"type": "number", "description": "Subject company revenue, in currency units."},
     "adjustments": {
         "type": "object",
-        "description": 'Optional multiplicative adjustments, e.g. {"size": 0.9, "growth": 1.1}.',
+        "description": (
+            "Map from comparable index (0-based) to an adjustment applied as (1 + adjustment): {0: 0.10} raises the first comparable's multiple by 10%."
+        ),
     },
     "revenue": {"type": "number", "description": "Annual revenue attributable to the asset, in currency units."},
     "royalty_rate": {"type": "number", "description": "Royalty rate as a decimal (0.05 = 5% of revenue)."},
@@ -198,10 +202,6 @@ PARAMS: dict[str, dict[str, Any]] = {
         "type": "array:number",
         "description": "Projected after-tax cash flows per period t=1..n, in currency units.",
     },
-    "contributory_asset_charges": {
-        "type": "array:number",
-        "description": "Contributory asset charge per period t=1..n, in currency units.",
-    },
     "normalized_earnings": {"type": "number", "description": "Single-period normalized earnings, in currency units."},
     "capitalization_rate": {"type": "number", "description": "Capitalization rate as a decimal (0.15 = 15%)."},
     "cash_flows_with": {
@@ -212,9 +212,18 @@ PARAMS: dict[str, dict[str, Any]] = {
         "type": "array:number",
         "description": "Cash flows per period without the asset, in currency units.",
     },
+    "cac_objects": {
+        "type": "array:object",
+        "description": (
+            "One object per period with total_cac, in currency units. mpeem also accepts a plain number, used "
+            "as that period's charge."
+        ),
+    },
     "assets": {
         "type": "array:object",
-        "description": "Contributory assets, each {value, return_rate}.",
+        "description": (
+            "Contributory assets, each {type, value, return_rate}."
+        ),
     },
     # IP
     "remaining_life": {"type": "integer", "description": "Remaining legal/economic life of the patent in years (≥ 0)."},
@@ -315,7 +324,10 @@ PARAMS: dict[str, dict[str, Any]] = {
     "tangible_assets_fv": {"type": "number", "description": "Fair value of tangible assets, in currency units."},
     "identified_intangibles": {
         "type": "array:object",
-        "description": "Identified intangibles, each {name, value} or {name, fair_value}.",
+        "description": (
+            "Identified intangibles. purchase_price_allocation needs `name`, `value` and `method`; "
+            "deferred_tax_liability needs `name` and `fair_value`."
+        ),
     },
     "liabilities_fv": {
         "type": "number",
@@ -432,6 +444,290 @@ PARAMS: dict[str, dict[str, Any]] = {
     "parameter_name": {"type": "string", "description": "Name of the parameter to vary."},
     "parameter_range": {"type": "array:number", "description": "Values to test for the varied parameter."},
     "fixed_parameters": {"type": "object", "description": "Values for all other parameters, held constant."},
+    "advantage_margin": {
+        "type": "number",
+        "description": (
+            "Margin attributable to the advantage over alternative technology, as a decimal (0.20 = 20%)."
+        ),
+    },
+    "brand_earnings": {
+        "type": "number",
+        "description": (
+            "Profit attributable to the brand, in currency units."
+        ),
+    },
+    "brand_strength_adjustment": {
+        "type": "number",
+        "description": (
+            "Multiplied onto the comparable rate: 0.05 raises it by 5% of itself, not by 5 percentage points."
+        ),
+    },
+    "brand_strength_score": {
+        "type": "number",
+        "description": (
+            "Composite brand strength score on a 0-100 scale."
+        ),
+    },
+    "cgu_carrying_value": {
+        "type": "number",
+        "description": (
+            "Carrying value of the cash-generating unit, in currency units."
+        ),
+    },
+    "cgu_recoverable_amount": {
+        "type": "number",
+        "description": (
+            "Recoverable amount of the cash-generating unit, in currency units."
+        ),
+    },
+    "churn_rate_after": {
+        "type": "number",
+        "description": (
+            "Churn rate after the change, as a decimal (0.10 = 10%)."
+        ),
+    },
+    "churn_rate_before": {
+        "type": "number",
+        "description": (
+            "Churn rate before the change, as a decimal (0.10 = 10%)."
+        ),
+    },
+    "comparable_rates": {
+        "type": "array:number",
+        "description": (
+            "Comparable brand royalty rates as decimals (0.05 = 5%)."
+        ),
+    },
+    "competitive_advantage_years": {
+        "type": "integer",
+        "description": (
+            "Years the competitive advantage is expected to last."
+        ),
+    },
+    "computational_savings": {
+        "type": "number",
+        "description": (
+            "Annual computational cost saved, in currency units."
+        ),
+    },
+    "contract_backlog": {
+        "type": "array:object",
+        "description": (
+            "Backlog contracts as JSON objects with `value` and an optional `period` (default 1)."
+        ),
+    },
+    "correlated_distributions": {
+        "type": "array:object",
+        "description": (
+            "One object per sampled variable: `name`, `distribution` (normal, uniform or triangular) and `params`. "
+            "Every parameter of the named `valuation_fn` must appear here, because the sampler supplies all of them."
+        ),
+    },
+    "correlation_matrix": {
+        "type": "array:array",
+        "description": (
+            "Correlation matrix as a JSON 2-D array of numbers, one row per variable, in the order of "
+            "correlated_distributions."
+        ),
+    },
+    "current_customers": {
+        "type": "integer",
+        "description": (
+            "Number of customers before the change."
+        ),
+    },
+    "customer_loyalty": {
+        "type": "number",
+        "description": (
+            "Customer loyalty score from 0 to 1."
+        ),
+    },
+    "deployment_scale": {
+        "type": "number",
+        "description": (
+            "Deployment scale multiplier applied to the algorithm's savings."
+        ),
+    },
+    "disposal_costs": {
+        "type": "number",
+        "description": (
+            "Costs of disposal, in currency units."
+        ),
+    },
+    "diversification_factor": {
+        "type": "number",
+        "description": (
+            "Diversification adjustment applied as a decimal fraction of the portfolio sum, scaled by the "
+            "portfolio's concentration (HHI): 0.10 is a 10% reduction only at full concentration."
+        ),
+    },
+    "exercise_cost": {
+        "type": "number",
+        "description": (
+            "Cost to exercise the option, in currency units."
+        ),
+    },
+    "expected_value": {
+        "type": "number",
+        "description": (
+            "Expected value of the underlying asset, in currency units."
+        ),
+    },
+    "fair_value_net_assets": {
+        "type": "number",
+        "description": (
+            "Fair value of the acquired net assets, in currency units."
+        ),
+    },
+    "geographic_reach": {
+        "type": "number",
+        "description": (
+            "Geographic reach score from 0 to 1."
+        ),
+    },
+    "goodwill_allocated": {
+        "type": "number",
+        "description": (
+            "Goodwill allocated to the cash-generating unit, in currency units."
+        ),
+    },
+    "initial_value": {
+        "type": "number",
+        "description": (
+            "Value at the start of the period, in currency units."
+        ),
+    },
+    "investment_level": {
+        "type": "number",
+        "description": (
+            "Brand investment level score from 0 to 1."
+        ),
+    },
+    "licensee_contribution_pct": {
+        "type": "number",
+        "description": (
+            "Licensee's contribution to the profit, as a decimal (0.40 = 40%)."
+        ),
+    },
+    "licensor_contribution_pct": {
+        "type": "number",
+        "description": (
+            "Licensor's contribution to the profit, as a decimal (0.60 = 60%)."
+        ),
+    },
+    "margin": {
+        "type": "number",
+        "description": (
+            "Profit margin per period, as a decimal (0.20 = 20%)."
+        ),
+    },
+    "market_share": {
+        "type": "number",
+        "description": (
+            "Market share score from 0 to 1."
+        ),
+    },
+    "other_assets": {
+        "type": "array:object",
+        "description": (
+            "Other assets as JSON objects with `name` and `carrying_value`; at least one is required."
+        ),
+    },
+    "parameter_ranges": {
+        "type": "object",
+        "description": (
+            "JSON object mapping each parameter name to the list of values to test."
+        ),
+    },
+    "patents": {
+        "type": "array:object",
+        "description": (
+            "Patents as JSON objects with `value`, and optionally `category` and `remaining_life`."
+        ),
+    },
+    "probability_of_completion": {
+        "type": "number",
+        "description": (
+            "Probability the backlog is delivered, as a decimal (0.90 = 90%)."
+        ),
+    },
+    "revenue_per_customer": {
+        "type": "number",
+        "description": (
+            "Revenue per customer per period, in currency units."
+        ),
+    },
+    "revenue_per_period": {
+        "type": "number",
+        "description": (
+            "Revenue per customer per period, in currency units."
+        ),
+    },
+    "revenue_stability": {
+        "type": "number",
+        "description": (
+            "Revenue stability score from 0 to 1."
+        ),
+    },
+    "role_of_brand_index": {
+        "type": "number",
+        "description": (
+            "Share of brand earnings attributable to the brand, as a decimal (0.50 = 50%)."
+        ),
+    },
+    "scenarios": {
+        "type": "array:object",
+        "description": (
+            "Scenario objects. contingent_consideration takes {probability, payment, period?} with probabilities summing to 1.0; scenario_analysis takes {name, probability, params, function_name}."
+        ),
+    },
+    "statutory_rate": {
+        "type": "number",
+        "description": (
+            "Statutory tax rate as a decimal (0.25 = 25%)."
+        ),
+    },
+    "tax_basis": {
+        "type": "number",
+        "description": (
+            "Tax basis of the identified intangibles, in currency units."
+        ),
+    },
+    "terminal_growth_rate": {
+        "type": "number",
+        "description": (
+            "Perpetual growth applied after the projections, as a decimal (0.02 = 2%)."
+        ),
+    },
+    "time_to_expiry": {
+        "type": "number",
+        "description": (
+            "Time to expiry, in years."
+        ),
+    },
+    "total_profit": {
+        "type": "number",
+        "description": (
+            "Total profit to be split, in currency units."
+        ),
+    },
+    "valuation_fn": {
+        "type": "string",
+        "description": (
+            "Name of the valuation function the simulation calls: present_value, future_value, annuity_pv, "
+            "perpetuity_pv, growing_annuity_pv, terminal_value, build_up_discount_rate, capm_discount_rate or wacc. "
+            "monte_carlo and monte_carlo_correlated sample every parameter of it, so all of its parameters must appear "
+            "in their distributions; monte_carlo_sensitivity varies only the parameters named in its own distributions "
+            "and keeps the rest at base_params. Required on all three: the surface has no default valuation, because "
+            "summing the parameters is not a valuation and gives a sensitivity ranking with no meaning."
+        ),
+    },
+    "volume": {
+        "type": "number",
+        "description": (
+            "Expected volume of units."
+        ),
+    },
 }
 
 
@@ -686,8 +982,8 @@ TOOLS: list[dict[str, Any]] = [
         "title": "Market Approach",
         "tags": ["market-approach", "comparables", "royalty-capitalization"],
         "purpose": (
-            "Market approach: value from comparable transaction revenue multiples or capitalize a royalty "
-            "stream into a perpetuity value."
+            "Market approach: value from comparable transaction revenue multiples, capitalize a royalty stream "
+            "into a perpetuity value, score brand strength, and value a brand by Interbrand."
         ),
         "use": "Use when reliable comparable transactions or royalty rates exist for the subject asset.",
         "alt": (
@@ -695,8 +991,8 @@ TOOLS: list[dict[str, Any]] = [
             "adjustment use valuation_royalty_analysis."
         ),
         "constraints": (
-            "Each comparable is {revenue, multiple}; comparable_transactions applies the comparable multiple to "
-            "subject_revenue."
+            "Each comparable is {sale_price, revenue, asset_type}; comparable_transactions divides sale_price by "
+            "revenue and applies the median implied multiple to subject_revenue."
         ),
         "methods": [
             _method(
@@ -714,6 +1010,20 @@ TOOLS: list[dict[str, Any]] = [
                 "royalty_capitalization",
                 {"revenue": "revenue", "royalty_rate": "royalty_rate", "discount_rate": "discount_rate"},
             ),
+            _method(
+                "brand_strength_index",
+                "Composite brand strength score on a 0-100 scale.",
+                "intangible_valuation.asset_types.brand_valuation",
+                "brand_strength_index",
+                {"revenue_stability": "revenue_stability", "market_share": "market_share", "geographic_reach": "geographic_reach", "customer_loyalty": "customer_loyalty", "investment_level": "investment_level"},
+            ),
+            _method(
+                "interbrand_brand",
+                "Brand valued by the Interbrand methodology.",
+                "intangible_valuation.asset_types.brand_valuation",
+                "interbrand_brand_valuation",
+                {"brand_earnings": "brand_earnings", "role_of_brand_index": "role_of_brand_index", "brand_strength_score": "brand_strength_score", "discount_rate": "discount_rate"},
+            ),
         ],
     },
     {
@@ -722,7 +1032,7 @@ TOOLS: list[dict[str, Any]] = [
         "tags": ["income-approach", "relief-from-royalty", "mpeem", "excess-earnings"],
         "purpose": (
             "Income approach: relief from royalty, multi-period and single-period excess earnings, incremental "
-            "cash flow, and contributory asset charges."
+            "cash flow, contributory asset charges, and the profit-split and analytical royalty methods."
         ),
         "use": (
             "Use for the income-approach arithmetic: relief_from_royalty for IP with observable royalty rates, "
@@ -757,7 +1067,7 @@ TOOLS: list[dict[str, Any]] = [
                 "mpeem",
                 {
                     "cash_flow_projections": "cash_flow_projections",
-                    "contributory_asset_charges": "contributory_asset_charges",
+                    "contributory_asset_charges": "cac_objects",
                     "discount_rate": "discount_rate",
                     "tax_rate": "tax_rate",
                 },
@@ -770,7 +1080,7 @@ TOOLS: list[dict[str, Any]] = [
                 "single_period_excess_earnings",
                 {
                     "normalized_earnings": "normalized_earnings",
-                    "contributory_asset_charges": "contributory_asset_charges",
+                    "contributory_asset_charges": "cac_objects",
                     "capitalization_rate": "capitalization_rate",
                 },
             ),
@@ -791,6 +1101,20 @@ TOOLS: list[dict[str, Any]] = [
                 "intangible_valuation.income_methods.excess_earnings",
                 "contributory_asset_charges",
                 {"assets": "assets"},
+            ),
+            _method(
+                "profit_split",
+                "Royalty by the profit split approach.",
+                "intangible_valuation.advanced.royalty_benchmark",
+                "profit_split_method",
+                {"licensor_contribution_pct": "licensor_contribution_pct", "licensee_contribution_pct": "licensee_contribution_pct", "total_profit": "total_profit"},
+            ),
+            _method(
+                "analytical_method",
+                "Royalty rate by the analytical method.",
+                "intangible_valuation.advanced.royalty_benchmark",
+                "analytical_method_valuation",
+                {"advantage_margin": "advantage_margin", "volume": "volume", "discount_rate": "discount_rate", "economic_life": "economic_life"},
             ),
         ],
         "constraints": (
@@ -867,6 +1191,21 @@ TOOLS: list[dict[str, Any]] = [
                     "secrecy_probability": "secrecy_probability",
                 },
             ),
+            _method(
+                "patent_portfolio",
+                "Total patent portfolio value with a diversification adjustment.",
+                "intangible_valuation.asset_types.ip_valuation",
+                "patent_portfolio_valuation",
+                {"patents": "patents"},
+                {"diversification_factor": "diversification_factor"},
+            ),
+            _method(
+                "option_pricing",
+                "Patent valued as a real option by Black-Scholes approximation.",
+                "intangible_valuation.asset_types.ip_valuation",
+                "option_pricing_patent",
+                {"exercise_cost": "exercise_cost", "expected_value": "expected_value", "volatility": "volatility", "time_to_expiry": "time_to_expiry", "risk_free_rate": "risk_free_rate"},
+            ),
         ],
         "constraints": "cash_flow_projections for patent run over remaining_life.",
     },
@@ -940,6 +1279,20 @@ TOOLS: list[dict[str, Any]] = [
                     "discount_rate": "discount_rate",
                 },
             ),
+            _method(
+                "obsolescence_curve",
+                "Technology value decay over time from obsolescence.",
+                "intangible_valuation.asset_types.technology_valuation",
+                "technology_obsolescence_curve",
+                {"initial_value": "initial_value", "obsolescence_rate": "obsolescence_rate", "periods": "periods"},
+            ),
+            _method(
+                "algorithm",
+                "ML algorithm valued from computational savings and competitive advantage.",
+                "intangible_valuation.asset_types.technology_valuation",
+                "algorithm_valuation",
+                {"computational_savings": "computational_savings", "deployment_scale": "deployment_scale", "competitive_advantage_years": "competitive_advantage_years", "discount_rate": "discount_rate"},
+            ),
         ],
         "constraints": "cash_flow_projections for developed_technology run over the remaining useful life.",
     },
@@ -1003,6 +1356,27 @@ TOOLS: list[dict[str, Any]] = [
                     "enforcement_probability": "enforcement_probability",
                     "discount_rate": "discount_rate",
                 },
+            ),
+            _method(
+                "lifetime_value",
+                "Customer lifetime value, infinite-horizon form.",
+                "intangible_valuation.asset_types.customer_valuation",
+                "customer_lifetime_value",
+                {"revenue_per_period": "revenue_per_period", "retention_rate": "retention_rate", "discount_rate": "discount_rate", "margin": "margin"},
+            ),
+            _method(
+                "backlog",
+                "Order backlog as risk-adjusted present value of contracted revenue.",
+                "intangible_valuation.asset_types.customer_valuation",
+                "backlog_valuation",
+                {"contract_backlog": "contract_backlog", "probability_of_completion": "probability_of_completion", "discount_rate": "discount_rate"},
+            ),
+            _method(
+                "churn_impact",
+                "Value impact of a change in the churn rate.",
+                "intangible_valuation.asset_types.customer_valuation",
+                "churn_impact_analysis",
+                {"current_customers": "current_customers", "churn_rate_before": "churn_rate_before", "churn_rate_after": "churn_rate_after", "revenue_per_customer": "revenue_per_customer", "discount_rate": "discount_rate"},
             ),
         ],
     },
@@ -1100,6 +1474,27 @@ TOOLS: list[dict[str, Any]] = [
                     "obsolescence_rate": "obsolescence_rate",
                 },
             ),
+            _method(
+                "bargain_purchase",
+                "Bargain purchase (negative goodwill) analysis.",
+                "intangible_valuation.advanced.purchase_price_alloc",
+                "bargain_purchase_analysis",
+                {"purchase_price": "purchase_price", "fair_value_net_assets": "fair_value_net_assets"},
+            ),
+            _method(
+                "contingent_consideration",
+                "Earn-out valued as probability-weighted scenarios.",
+                "intangible_valuation.advanced.purchase_price_alloc",
+                "contingent_consideration_valuation",
+                {"scenarios": "scenarios", "discount_rate": "discount_rate"},
+            ),
+            _method(
+                "deferred_tax_liability",
+                "Deferred tax liability from a PPA step-up in basis.",
+                "intangible_valuation.advanced.purchase_price_alloc",
+                "deferred_tax_liability_ppa",
+                {"identified_intangibles": "identified_intangibles", "tax_basis": "tax_basis", "statutory_rate": "statutory_rate"},
+            ),
         ],
         "constraints": (
             "identified_intangibles values are summed before goodwill is taken as the residual; liabilities_fv "
@@ -1145,11 +1540,34 @@ TOOLS: list[dict[str, Any]] = [
                 {"carrying_value": "carrying_value"},
                 {"fair_value": "fair_value", "recoverable_amount": "recoverable_amount", "standard": "standard"},
             ),
+            _method(
+                "value_in_use",
+                "IAS 36 value in use from discounted cash flows.",
+                "intangible_valuation.advanced.impairment_testing",
+                "value_in_use",
+                {"cash_flow_projections": "cash_flow_projections", "terminal_growth_rate": "terminal_growth_rate", "discount_rate": "discount_rate"},
+            ),
+            _method(
+                "fair_value_less_costs",
+                "IAS 36 fair value less costs of disposal.",
+                "intangible_valuation.advanced.impairment_testing",
+                "fair_value_less_costs_to_sell",
+                {"fair_value": "fair_value"},
+                {"disposal_costs": "disposal_costs", "costs_to_sell": "costs_to_sell"},
+            ),
+            _method(
+                "cgu_impairment",
+                "IAS 36 impairment loss allocated at the cash-generating-unit level.",
+                "intangible_valuation.advanced.impairment_testing",
+                "cash_generating_unit_impairment",
+                {"cgu_carrying_value": "cgu_carrying_value", "cgu_recoverable_amount": "cgu_recoverable_amount", "goodwill_allocated": "goodwill_allocated", "other_assets": "other_assets"},
+            ),
         ],
         "constraints": (
             "intangible_impairment: fair_value is required for ASC350, recoverable_amount for IAS36. "
             "goodwill_impairment takes fair_value under either standard and ignores recoverable_amount; "
-            "its IAS 36 inputs are value_in_use and costs_to_sell."
+            "its IAS 36 inputs are value_in_use and costs_to_sell. fair_value_less_costs takes exactly "
+            "one of disposal_costs or costs_to_sell."
         ),
     },
     {
@@ -1192,6 +1610,14 @@ TOOLS: list[dict[str, Any]] = [
                 {"licensee_expected_profit": "licensee_expected_profit"},
                 {"profit_attribution_to_ip": "profit_attribution_to_ip"},
             ),
+            _method(
+                "brand_royalty_from_comparables",
+                "Brand royalty rate derived from comparable licensing agreements.",
+                "intangible_valuation.asset_types.brand_valuation",
+                "brand_royalty_rate_from_comparables",
+                {"comparable_rates": "comparable_rates"},
+                {"brand_strength_adjustment": "brand_strength_adjustment"},
+            ),
         ],
         "constraints": "adjustment_factors multiply the base rate, so values above 1.0 raise the rate.",
     },
@@ -1214,10 +1640,10 @@ TOOLS: list[dict[str, Any]] = [
         "methods": [
             _method(
                 "monte_carlo",
-                "Simulate all listed inputs, sum-based valuation.",
+                "Simulate every input in input_distributions through the named valuation function.",
                 "intangible_valuation.core.statistics",
                 "monte_carlo_valuation",
-                {"input_distributions": "input_distributions"},
+                {"input_distributions": "input_distributions", "valuation_fn": "valuation_fn"},
                 {"iterations": "iterations", "seed": "seed"},
                 adapter="mc_valuation",
             ),
@@ -1226,7 +1652,7 @@ TOOLS: list[dict[str, Any]] = [
                 "Rank parameters by their impact on the valuation.",
                 "intangible_valuation.advanced.monte_carlo",
                 "monte_carlo_sensitivity",
-                {"base_params": "base_params", "distributions": "distributions"},
+                {"base_params": "base_params", "distributions": "distributions", "valuation_fn": "valuation_fn"},
                 {"iterations": "iterations", "seed": "seed"},
                 adapter="mc_sensitivity",
             ),
@@ -1248,6 +1674,29 @@ TOOLS: list[dict[str, Any]] = [
                     "parameter_range": "parameter_range",
                     "fixed_parameters": "fixed_parameters",
                 },
+            ),
+            _method(
+                "monte_carlo_correlated",
+                "Monte Carlo with correlated input variables.",
+                "intangible_valuation.core.statistics",
+                "monte_carlo_with_correlation",
+                {"valuation_fn": "valuation_fn", "distributions": "correlated_distributions", "correlation_matrix": "correlation_matrix"},
+                {"iterations": "iterations", "seed": "seed"},
+                adapter="mc_correlated",
+            ),
+            _method(
+                "tornado",
+                "Tornado data for multi-parameter sensitivity analysis.",
+                "intangible_valuation.core.statistics",
+                "sensitivity_tornado",
+                {"function_name": "function_name", "base_params": "base_params", "parameter_ranges": "parameter_ranges"},
+            ),
+            _method(
+                "scenario",
+                "Probability-weighted expected value across scenarios.",
+                "intangible_valuation.core.statistics",
+                "scenario_analysis",
+                {"scenarios": "scenarios"},
             ),
         ],
         "constraints": "monte_carlo_sensitivity requires iterations between 1000 and 100000.",
@@ -1341,8 +1790,9 @@ def describe(tool: dict[str, Any]) -> str:
         "names and omit the rest (defaults apply where defined). Rates and premiums are decimals (0.10 = 10%)."
     )
     lines.append(
-        "Pure arithmetic: no I/O and no external calls, rounded to 2 decimals; parameters belonging to other "
-        "methods are accepted and ignored."
+        "Pure arithmetic: no I/O and no external calls; values carry the library's own precision (rates are "
+        "decimals, so a royalty rate of 0.055 is not rounded); parameters belonging to other methods are "
+        "accepted and ignored."
     )
     lines.append("An unknown method, or a missing method-required parameter, returns an error instead of a value.")
     return " ".join(lines)
@@ -1354,6 +1804,8 @@ def _type_schema(spec: dict[str, Any]) -> dict[str, Any]:
         return {"type": "array", "items": {"type": "number"}}
     if t == "array:object":
         return {"type": "array", "items": {"type": "object"}}
+    if t == "array:array":
+        return {"type": "array", "items": {"type": "array", "items": {"type": "number"}}}
     if t == "object":
         return {"type": "object"}
     return {"type": t}
@@ -1420,24 +1872,33 @@ def tool_count() -> int:
 # --------------------------------------------------------------------------
 
 
-def _simple_sum_valuation(**params: float) -> float:
-    """Sum-based valuation used by the Monte Carlo MCP adapters."""
-    return float(sum(v for v in params.values() if isinstance(v, (int, float))))
+def _named_valuation(name: str) -> Any:
+    """Wrap a valuation function name into the callable ``monte_carlo_with_correlation`` expects.
+
+    That function takes ``valuation_fn: Callable``, which JSON cannot carry, so the tool names the
+    function and this resolves it through ``statistics._call_function``, the table
+    ``sensitivity_tornado`` uses.
+    """
+    from intangible_valuation.core.statistics import _call_function
+
+    def fn(**params: float) -> float:
+        return float(_call_function(name, params))
+
+    return fn
 
 
-class _SumResult:
-    """Minimal ValuationResult-shaped object for the sensitivity adapter."""
+def _named_valuation_of_params(name: str) -> Any:
+    """Same resolution as `_named_valuation`, for the callback convention that takes a dict.
 
-    def __init__(self, value: float) -> None:
-        self.value = value
-        self.method = "Sum"
-        self.formula_reference = "sum"
-        self.steps: list[str] = []
-        self.assumptions: list[str] = []
+    ``monte_carlo_sensitivity`` calls ``valuation_fn(params)`` where the others call
+    ``valuation_fn(**params)``; one wrapper cannot satisfy both.
+    """
+    from intangible_valuation.core.statistics import _call_function
 
+    def fn(params: dict[str, float]) -> float:
+        return float(_call_function(name, params))
 
-def _sum_valuation(params: dict[str, float]) -> _SumResult:
-    return _SumResult(_simple_sum_valuation(**params))
+    return fn
 
 
 def _resolve(module_name: str, function_name: str) -> Any:
@@ -1522,10 +1983,13 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 
     fn = _resolve(method["module"], method["function"])
 
-    if method.get("adapter") == "mc_valuation":
-        kwargs["valuation_fn"] = _simple_sum_valuation
-    elif method.get("adapter") == "mc_sensitivity":
-        kwargs["valuation_fn"] = _sum_valuation
+    if method.get("adapter") in {"mc_valuation", "mc_sensitivity", "mc_correlated"}:
+        name = kwargs.get("valuation_fn")
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"method '{method['key']}' requires valuation_fn as a function name")
+        kwargs["valuation_fn"] = (
+            _named_valuation_of_params(name) if method["adapter"] == "mc_sensitivity" else _named_valuation(name)
+        )
 
     result = _unwrap(fn(**kwargs))
     if defaults_applied:

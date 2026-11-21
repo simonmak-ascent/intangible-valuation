@@ -98,3 +98,23 @@ class TestRoyaltyCapitalization:
         result = royalty_capitalization(revenue=1000000, royalty_rate=0.05, discount_rate=0.10)
         for key in ("value", "method", "formula_reference", "annual_royalty", "steps", "assumptions"):
             assert key in result
+
+def test_adjustments_accept_string_keys_from_json() -> None:
+    """A JSON object cannot carry integer keys, so {"0": 0.10} must mean the same as {0: 0.10}.
+
+    Before this, the lookup was `i in adjustments` with an integer index: an adjustment sent over
+    HTTP or MCP was ignored and the caller got the unadjusted median with no error.
+    """
+    comparables = [
+        {"sale_price": 1_200_000, "revenue": 1_000_000, "asset_type": "software"},
+        {"sale_price": 1_500_000, "revenue": 1_000_000, "asset_type": "software"},
+    ]
+    as_int = market_approach_comparables(comparables=comparables, subject_revenue=1_000_000,
+                                         adjustments={0: 0.10})
+    as_str = market_approach_comparables(comparables=comparables, subject_revenue=1_000_000,
+                                         adjustments={"0": 0.10})
+    assert as_str.value == as_int.value
+    assert as_str.value != market_approach_comparables(
+        comparables=comparables, subject_revenue=1_000_000
+    ).value
+

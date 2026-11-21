@@ -73,8 +73,8 @@ def market_approach_comparables(
         ...     {"sale_price": 12000000, "revenue": 4000000, "asset_type": "trademark"},
         ... ]
         >>> result = market_approach_comparables(comps, subject_revenue=2500000)
-        >>> result.value
-        6250000.0
+        >>> round(result.value, 2)
+        6666666.67
     """
     if not comparables:
         raise ValueError("comparables list cannot be empty")
@@ -94,8 +94,11 @@ def market_approach_comparables(
         multiple = comp.sale_price / comp.revenue
 
         adjustment = 0.0
-        if adjustments and i in adjustments:
-            adjustment = adjustments[i]
+        if adjustments:
+            # JSON object keys are always strings, so a caller arriving over HTTP or MCP sends
+            # {"0": 0.10}. Accept both forms: an int-only lookup silently ignored every adjustment
+            # sent through either surface, returning an unadjusted median with no error.
+            adjustment = adjustments.get(i, adjustments.get(str(i), 0.0))
 
         adjusted_multiple = multiple * (1 + adjustment)
         implied_value = adjusted_multiple * subject_revenue

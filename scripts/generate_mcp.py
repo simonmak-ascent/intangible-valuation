@@ -25,6 +25,7 @@ _PY_TYPE = {
     "boolean": "bool",
     "array:number": "list[float]",
     "array:object": "list[dict]",
+    "array:array": "list[list[float]]",
     "object": "dict",
 }
 
