@@ -13,7 +13,10 @@ site
 dist
 docs
 specs
-skills
+# `skills/` must stay in the build context: `app/(en)/skills/page.tsx` reads every
+# `skills/<slug>/SKILL.md` while `next build` runs in the build stage, so excluding it fails the image
+# at prerender with ENOENT. It still does not reach the run stage, which copies only
+# `.next/standalone`, `.next/static` and `public/`.
 vdd
 tests
 tests-webapp

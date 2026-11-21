@@ -1,3 +1,10 @@
+---
+name: Impairment Testing
+description: Goodwill and intangible asset impairment testing compliant with ASC 350/IAS 36.
+category: compliance
+tools: [valuation_impairment, valuation_market_approach, valuation_income_methods, valuation_time_value, valuation_cost_approach]
+---
+
 # Impairment Testing Skill
 
 ## When to Use
@@ -34,7 +41,7 @@ Obtain net book value from accounting records.
 
 ### Step 3: Estimate Fair Value
 Use appropriate valuation approach:
-- Market approach — `market_approach_comparables`
+- Market approach — `comparable_transactions`
 - Income approach — `relief_from_royalty`, `mpeem`, `royalty_capitalization`
 - Cost approach — `reproduction_cost`, `replacement_cost`
 
@@ -42,7 +49,7 @@ Use appropriate valuation approach:
 
 **Goodwill (ASC 350):**
 ```python
-goodwill_impairment_test(
+valuation_impairment(method="goodwill_impairment",
     carrying_value=15_000_000,
     fair_value=13_000_000,
     reporting_unit="Software Division",
@@ -53,7 +60,7 @@ goodwill_impairment_test(
 
 **Intangible Asset (ASC 350):**
 ```python
-intangible_impairment_test(
+valuation_impairment(method="intangible_impairment",
     carrying_value=5_000_000,
     fair_value=4_200_000,
     standard="ASC350",
@@ -63,7 +70,7 @@ intangible_impairment_test(
 
 **Intangible Asset (IAS 36):**
 ```python
-intangible_impairment_test(
+valuation_impairment(method="intangible_impairment",
     carrying_value=5_000_000,
     recoverable_amount=4_500_000,  # Higher of FVLCTS and VIU
     standard="IAS36",
@@ -76,13 +83,17 @@ intangible_impairment_test(
 - Disclose key assumptions (discount rate, growth rate, cash flow projections)
 - Update asset carrying value
 
-## MCP Tools Reference
+## MCP Methods Reference
 
-| Tool | Purpose |
+These are **methods**, called through the tools this skill's front matter names
+(`valuation_impairment`, `valuation_market_approach`, `valuation_income_methods`, `valuation_time_value`,
+`valuation_cost_approach`), as `{"method": "<name>", ...params}`.
+
+| Method | Purpose |
 |------|---------|
-| `goodwill_impairment_test` | Test goodwill for impairment |
-| `intangible_impairment_test` | Test intangible assets for impairment |
-| `market_approach_comparables` | Estimate fair value via market approach |
+| `goodwill_impairment` | Test goodwill for impairment |
+| `intangible_impairment` | Test intangible assets for impairment |
+| `comparable_transactions` | Estimate fair value via market approach |
 | `relief_from_royalty` | Estimate fair value for IP assets |
 | `mpeem` | Estimate fair value for primary intangibles |
 | `present_value` | Discount future cash flows |

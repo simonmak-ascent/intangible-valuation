@@ -1,3 +1,10 @@
+---
+name: Purchase Price Allocation
+description: Complete PPA workflow following ASC 805/IFRS 3 with full waterfall calculation.
+category: workflow
+tools: [valuation_goodwill_ppa, valuation_income_methods, valuation_technology, valuation_customer, valuation_ip, valuation_human_capital, valuation_discount_rate, valuation_royalty_analysis]
+---
+
 # Purchase Price Allocation (PPA) Workflow Skill
 
 ## When to Use
@@ -53,22 +60,22 @@ For each identified intangible:
 3. Gather inputs (revenue, royalty rates, discount rates, CACs)
 4. Calculate fair value
 
-MCP Tools:
-- `trademark_valuation` — for brands/trademarks
-- `patent_valuation` — for patents
-- `copyright_valuation` — for copyrights
-- `trade_secret_valuation` — for trade secrets
-- `developed_technology_valuation` — for developed technology
-- `software_valuation` — for software
-- `customer_relationship_valuation` — for customer relationships
-- `non_compete_valuation` — for non-compete agreements
-- `distribution_network_valuation` — for distribution networks
-- `assembled_workforce_valuation` — for assembled workforce (note: not separately recognized under ASC 805, subsumed into goodwill)
-- `relief_from_royalty` — for any asset with comparable royalty rates
-- `mpeem` — for primary revenue-generating intangibles
-- `royalty_rate_benchmark` — to find market royalty rates
-- `estimate_useful_life` — to determine amortization periods
-- `build_up_discount_rate` / `capm_discount_rate` — to construct discount rates
+MCP methods, as `{"method": "<key>", ...params}` on the tool named beside each:
+- `valuation_ip` with `trademark` — brands/trademarks
+- `valuation_ip` with `patent` — patents
+- `valuation_ip` with `copyright` — copyrights
+- `valuation_ip` with `trade_secret` — trade secrets
+- `valuation_technology` with `developed_technology` — developed technology
+- `valuation_technology` with `software` — software
+- `valuation_customer` with `customer_relationships` — customer relationships
+- `valuation_customer` with `non_compete` — non-compete agreements
+- `valuation_customer` with `distribution_network` — distribution networks
+- `valuation_human_capital` with `assembled_workforce` — assembled workforce (note: not separately recognized under ASC 805, subsumed into goodwill)
+- `valuation_income_methods` with `relief_from_royalty` — any asset with comparable royalty rates
+- `valuation_income_methods` with `mpeem` — primary revenue-generating intangibles
+- `valuation_royalty_analysis` with `benchmark` — market royalty rates
+- `valuation_goodwill_ppa` with `useful_life` — amortisation periods
+- `valuation_discount_rate` with `build_up` or `capm` — discount rates
 
 ### Step 4: Calculate Goodwill
 Goodwill = Purchase Price - Fair Value of Net Identifiable Assets
@@ -76,11 +83,11 @@ Goodwill = Purchase Price - Fair Value of Net Identifiable Assets
 Where:
 Net Identifiable Assets = Tangible Assets (FV) + Identified Intangibles (FV) - Liabilities (FV)
 
-MCP Tool: `goodwill(purchase_price, fair_value_net_identifiable_assets)`
+MCP Tool: `valuation_goodwill_ppa` with `{"method": "goodwill", "purchase_price": ..., "fair_value_net_identifiable_assets": ...}`
 
 Or use the full waterfall:
 ```
-purchase_price_allocation(
+valuation_goodwill_ppa(method="purchase_price_allocation",
     purchase_price=...,
     tangible_assets_fv=...,
     identified_intangibles=[
@@ -146,30 +153,30 @@ For each intangible, document:
 
 1. **Developed Technology** (RFR method)
    - Revenue projections: $8M, $9M, $10M, $10.5M, $11M (5 years)
-   - Royalty rate: 5% (from `royalty_rate_benchmark` for technology/software)
-   - Discount rate: 15% (from `build_up_discount_rate`)
+   - Royalty rate: 5% (from `valuation_royalty_analysis` with `benchmark` for technology/software)
+   - Discount rate: 15% (from `valuation_discount_rate` with `build_up`)
    - Tax rate: 25%
-   - Call `relief_from_royalty` → $25M
+   - `valuation_income_methods` with `relief_from_royalty` → $25M
 
 2. **Customer Relationships** (MPEEM)
    - 500 customers, $20K avg revenue, 85% retention, 30% margin
    - CACs: working capital $2M at 8%, equipment $1M at 10%
    - Discount rate: 18%
-   - Call `mpeem` → $20M
+   - `valuation_income_methods` with `mpeem` → $20M
 
 3. **Trademark** (RFR method)
    - Revenue: $15M, brand strength 0.7, discount rate 14%, useful life 10 years
-   - Call `trademark_valuation` → $10M
+   - `valuation_ip` with `trademark` → $10M
 
 4. **Non-Compete** (4-year term)
    - Protected revenue: $5M, margin 25%, enforcement 90%, discount 15%
-   - Call `non_compete_valuation` → $5M
+   - `valuation_customer` with `non_compete` → $5M
 
 **Total Identified Intangibles: $60M**
 
 **Step 4: Calculate Goodwill**
 ```
-goodwill(
+valuation_goodwill_ppa(method="goodwill",
     purchase_price=100000000,
     fair_value_net_identifiable_assets=70000000  # 10M tangibles + 60M intangibles - 0 liabilities
 )
@@ -178,7 +185,7 @@ Goodwill = $30M
 
 **Step 5: PPA Waterfall**
 ```
-purchase_price_allocation(
+valuation_goodwill_ppa(method="purchase_price_allocation",
     purchase_price=100000000,
     tangible_assets_fv=10000000,
     identified_intangibles=[
