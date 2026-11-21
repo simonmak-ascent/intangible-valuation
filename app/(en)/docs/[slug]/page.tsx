@@ -35,7 +35,7 @@ print(f"Present Value: \${result.value:,.2f}")`,
     formulaTex: "r = Rf + Beta * (Rm - Rf)",
     textbookReference: "Chapter 2, Section 2.3 — Discount Rate Construction",
     parameters: [
-      { name: "risk_free_rate", type: "number", required: true, description: "Risk-free rate (typically 10-year treasury yield). Current US: ~0.04" },
+      { name: "risk_free_rate", type: "number", required: true, description: "Risk-free rate (typically 10-year Treasury yield). The current 10-year is read from Yahoo Finance at GET /v1/rates/risk-free; 0.04 is the illustrative default, not the market" },
       { name: "beta", type: "number", required: true, description: "Beta coefficient measuring systematic risk. >1 = more volatile than market, <1 = less volatile." },
       { name: "market_return", type: "number", required: true, description: "Expected market return (S&P 500 long-term avg: ~0.10)" },
     ],

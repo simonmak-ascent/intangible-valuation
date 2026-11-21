@@ -113,13 +113,6 @@ export const SOURCE_REGISTRY: Record<string, Citation> = {
     publisher: "Federal Reserve Bank of St. Louis",
     url: "https://fred.stlouisfed.org/",
   },
-  eodhd: {
-    id: "eodhd",
-    title: "EODHD — End-of-Day Historical & Fundamental Market Data",
-    kind: "data-vendor",
-    publisher: "EOD Historical Data",
-    url: "https://eodhd.com/",
-  },
   hkex: {
     id: "hkex",
     title: "HKEXnews — Listed Company Information and Announcements",

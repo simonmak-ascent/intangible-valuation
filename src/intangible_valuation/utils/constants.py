@@ -1,25 +1,42 @@
-"""Industry default rates and constants for valuation calculations."""
+"""Industry default rates and constants for valuation calculations.
+
+Provenance of the default rates
+-------------------------------
+`DEFAULT_RISK_FREE_RATE`, `DEFAULT_EQUITY_RISK_PREMIUM` and the `DEFAULT_MARKET_RETURN` derived from
+them are FIXED ILLUSTRATIVE VALUES, not market data. A caller valuing at a date should pass the rate
+for that date; the library deliberately performs no network I/O, so nothing here can track the market
+on its own.
+
+Measured 2026-11-21 from Yahoo Finance's `^TNX` quote, the 10-year Treasury note yield index, which
+is quoted in percent (the chart endpoint agrees): the latest session was 2026-11-20 at 4.912%,
+against the 4.00% default below — a 0.912pp gap. `^TNX` tracks the on-the-run 10-year note, so it
+sits a few basis points from the Treasury's own par-yield curve; on 2026-11-19 `^TNX` read 5.052% and
+the Treasury's published par yield 5.04%. With beta 1.2, Rf 4.00% and a 6.00% ERP the rate is 11.20%;
+holding that ERP while marking Rf to 4.912% — so Rm becomes 10.912% — gives 12.11%, and
+discounting a level five-year stream at 11.20% overstates its present value by 2.30%, a ten-year
+stream by 3.84%. ``capm_discount_rate`` has no default arguments: passing
+``risk_free_rate=0.04912`` with ``market_return=0.10`` (the value of ``DEFAULT_MARKET_RETURN``) gives
+11.02%, not 12.11% — the ERP is what is held fixed above.
+
+The values are kept as they are on purpose: nothing in this library imports them (callers pass their
+own rate), so changing them would not move an output here; the exposure is a consumer that copied
+0.04 and 0.06 into its own call.
+
+To refresh, read it through `yahoo-finance2` — which is what the site does, in
+`lib/market/treasury.ts`, serving the result at `GET /v1/rates/risk-free`. That module is the reference
+for the read; two details it encodes are easy to get wrong. The value is a percent: 4.912 means
+4.912%, not 0.04912. And a quote belongs to the session it was struck in (`regularMarketTime`), which
+need not be today. Prefer the package to a bare HTTP call: Yahoo refuses script-identifying clients,
+so `curl/8.x` and `python-requests` both answer HTTP 429 "Edge: Too Many Requests" (measured
+2026-11-21) while a browser-like client is served. `^TYX` (30-year, 5.303%), `^FVX` (5-year, 4.701%)
+and `^IRX` (13-week bill, 4.122%) are the same read for another tenor.
+
+The equity risk premium is a judgement, not a quote.
+"""
 
 from typing import Final
 
-# Default rates.
-#
-# These are FIXED ILLUSTRATIVE VALUES, not market data. A caller valuing at a date should pass the
-# rate for that date; the library deliberately performs no network I/O, so nothing here can track the
-# market on its own.
-#
-# Measured 2026-11-21 against the US Treasury par-yield curve (EODHD `ust/yield-rates`, curve dated
-# 2026-11-19): the 10-year was 5.04%, against the 4.00% below — a 1.04pp gap. With beta 1.2, Rf 4.00%
-# and a 6.00% ERP the rate is 11.20%; holding that ERP while marking Rf to 5.04% — so Rm becomes
-# 11.04% — gives 12.24%, and discounting a level five-year stream at 11.20% overstates its present
-# value by 2.62%, more on anything with a longer tail. `capm_discount_rate` has no default arguments:
-# passing risk_free_rate=0.0504 with market_return=0.10 (the value of DEFAULT_MARKET_RETURN) gives
-# 10.99%, not 12.24 — the ERP is what is held fixed above.
-#
-# Kept as they are on purpose: nothing in this library imports them (callers pass their own rate), so
-# changing them would not move an output here; the exposure is a consumer that copied 0.04 and 0.06
-# into its own call. To refresh, `GET https://eodhd.com/api/ust/yield-rates?api_token=…`
-# and read the latest dated curve; the equity risk premium is a judgement, not a quote.
+# Default rates. See the module docstring for where these numbers come from and how to refresh them.
 DEFAULT_RISK_FREE_RATE: Final[float] = 0.04
 DEFAULT_EQUITY_RISK_PREMIUM: Final[float] = 0.06
 DEFAULT_TAX_RATE: Final[float] = 0.25
