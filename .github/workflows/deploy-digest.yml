@@ -76,7 +76,9 @@ jobs:
           echo "::error::this workflow installs the dispatched ref's container.json on the node, so it runs from main only (got $GITHUB_REF). Dispatch with --ref main."
           exit 1
 
-      - uses: actions/checkout@v7
+      # Pinned by commit, as `image.yml` does: this job holds `packages: write` and talks to the
+      # node's Docker socket, so a moved action tag is code execution with both.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate the digest against the declaration, and resolve runtime names
         env:
