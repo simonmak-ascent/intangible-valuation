@@ -52,12 +52,31 @@ Goodwill and intangible asset impairment under ASC 350 and IAS 36:
 1. Identify the asset or reporting unit to test
 2. Gather carrying value from accounting records
 3. Estimate fair value using market, income, or cost approaches
-4. Run impairment test using `goodwill_impairment_test` or `intangible_impairment_test`
+4. Run the test with `{"method": "goodwill_impairment", ...}` or `{"method": "intangible_impairment", ...}` on `valuation_impairment`
 5. Document impairment loss and key assumptions
 
 ## Using Skills
 
-Skills are located in the `skills/` directory. Each skill is a markdown file with:
+Skills are located in the `skills/` directory. Each skill is `skills/<slug>/SKILL.md`, and the file
+begins with YAML front matter that the website reads at build time — it is the only source for the
+name, description and tool list shown on `/skills`:
+
+```yaml
+---
+name: Impairment Testing
+description: Goodwill and intangible asset impairment testing compliant with ASC 350/IAS 36.
+category: compliance          # valuation | workflow | compliance
+tools: [valuation_impairment, valuation_market_approach, valuation_income_methods, valuation_time_value, valuation_cost_approach]
+---
+```
+
+`tools` must list **tool** names — the fourteen `valuation_*` entries in
+`mcp_server/tool_surface.py`. Method keys such as `goodwill_impairment` or `relief_from_royalty` belong
+in the body, not there; `tests-webapp/unit/skills.test.ts` fails if one appears. A new
+`skills/<slug>/SKILL.md` appears on the site automatically, because the page discovers the directory
+rather than a roster.
+
+The body follows the front matter:
 
 - **Trigger conditions** — When to use this skill
 - **Workflow steps** — Ordered steps to follow
@@ -81,8 +100,8 @@ User: "Value a pharmaceutical patent with 12 years remaining"
 Skill triggers: Asset Valuation -> Patent
   1. Determine useful life (min of legal and economic)
   2. Select valuation method (Relief from Royalty recommended)
-  3. Call MCP tool: royalty_rate_benchmark("patent", "pharmaceutical")
-  4. Call MCP tool: relief_from_royalty(...)
+  3. Call `valuation_royalty_analysis` with `{"method": "benchmark", "ip_type": "patent", "industry": "pharmaceutical"}`
+  4. Call `valuation_income_methods` with `{"method": "relief_from_royalty", ...}`
   5. Validate result against benchmark range
   6. Present final valuation with confidence range
 ```
@@ -91,7 +110,7 @@ Skill triggers: Asset Valuation -> Patent
 
 To create a custom skill:
 
-1. Create a new markdown file in `skills/`
+1. Create `skills/<slug>/SKILL.md` — the page discovers directories, so a file loose in `skills/` is invisible
 2. Define trigger conditions
 3. Write workflow steps with MCP tool calls
 4. Include validation checks and references

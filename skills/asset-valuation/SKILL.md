@@ -1,3 +1,10 @@
+---
+name: Asset Valuation
+description: Comprehensive valuation workflow for any intangible asset type using all available methods.
+category: valuation
+tools: [valuation_time_value, valuation_discount_rate, valuation_cost_approach, valuation_market_approach, valuation_income_methods, valuation_ip, valuation_technology, valuation_customer, valuation_human_capital, valuation_royalty_analysis, valuation_simulation, valuation_goodwill_ppa]
+---
+
 # Asset Valuation Skill
 
 ## When to Use
@@ -11,7 +18,7 @@ Use this skill when a user asks to:
 
 ## Supported Asset Types
 
-| Asset Type | MCP Tool | Common Methods |
+| Asset Type | Function | Common Methods |
 |---|---|---|
 | Patent | `patent_valuation` | Risk-adjusted income, Relief from royalty |
 | Trademark/Brand | `trademark_valuation` | RFR, Excess earnings |
@@ -35,19 +42,19 @@ Use this skill when a user asks to:
 - `annuity_pv` — PV of equal periodic payments
 - `perpetuity_pv` — PV of perpetual payments: PV = PMT / r
 - `growing_annuity_pv` — PV of growing payments
-- `terminal_value` — Terminal value via Gordon Growth or Exit Multiple
-- `build_up_discount_rate` — Build-up method: r = Rf + ERP + premiums
-- `capm_discount_rate` — CAPM: r = Rf + beta * (Rm - Rf)
+- `terminal_value_gordon_growth` / `terminal_value_exit_multiple` — Terminal value via Gordon Growth or Exit Multiple
+- `build_up` — Build-up method: r = Rf + ERP + premiums
+- `capm` — CAPM: r = Rf + beta * (Rm - Rf)
 - `wacc` — Weighted Average Cost of Capital
 - `tax_amortization_benefit` — PV of tax savings from amortization
 - `control_premium` — Control premium percentage
 - `dlom_finnerty` — DLOM via Finnerty put option model
-- `currency_adjusted_discount_rate` — Add currency/country risk premiums
+- `currency_adjusted` — Add currency/country risk premiums
 
 ### Approaches
 - `reproduction_cost` — Cost to create exact replica, less obsolescence
 - `replacement_cost` — Cost to create equivalent utility, less obsolescence
-- `market_approach_comparables` — Revenue multiples from comparable transactions
+- `comparable_transactions` — Revenue multiples from comparable transactions
 - `royalty_capitalization` — Capitalize perpetual royalty: V = (Rev * r) / d
 
 ### Income Methods
@@ -58,13 +65,13 @@ Use this skill when a user asks to:
 - `contributory_asset_charges` — Calculate CACs for supporting assets
 
 ### Advanced
-- `royalty_rate_benchmark` — Benchmark rates by IP type and industry
-- `adjust_royalty_rate` — Adjust base rate for deal factors
+- `benchmark` — Benchmark rates by IP type and industry
+- `adjust` — Adjust base rate for deal factors
 - `twenty_five_percent_rule` — 25% rule of thumb for royalties
-- `monte_carlo_valuation` — Monte Carlo simulation for uncertainty
-- `decision_tree_valuation` — Decision tree expected value analysis
+- `monte_carlo` — Monte Carlo simulation for uncertainty
+- `decision_tree` — Decision tree expected value analysis
 - `sensitivity_analysis` — One-at-a-time parameter sensitivity
-- `estimate_useful_life` — Estimate asset useful life
+- `useful_life` — Estimate asset useful life
 
 ## Step-by-Step Workflow
 
@@ -96,11 +103,11 @@ Collect required parameters for the chosen method. Common inputs:
 - **Useful life** — economic or legal life in years
 - **Contributory asset charges** — for MPEEM
 
-Use helper tools:
-- `build_up_discount_rate` or `capm_discount_rate` to construct discount rate
-- `royalty_rate_benchmark` to find market royalty rates
-- `estimate_useful_life` to determine projection period
-- `contributory_asset_charges` to calculate CACs
+Use these methods, through the tools named in this file's front matter:
+- `valuation_discount_rate` with `{"method": "build_up"}` or `{"method": "capm"}` — the discount rate
+- `valuation_royalty_analysis` with `{"method": "benchmark"}` — market royalty rates
+- `valuation_goodwill_ppa` with `{"method": "useful_life"}` — the projection period
+- `valuation_income_methods` with `{"method": "contributory_asset_charges"}` — CACs
 
 ### Step 4: Calculate
 Call the appropriate MCP tool with gathered inputs. The tool returns:
@@ -126,10 +133,10 @@ Format the result clearly:
 
 **Agent:**
 1. Identify: Patent valuation, pharmaceutical industry
-2. Method: Risk-adjusted income approach via `patent_valuation`
+2. Method: Risk-adjusted income approach — `valuation_ip` with `method="patent"`
 3. Call tool:
 ```
-patent_valuation(
+valuation_ip(method="patent",
     remaining_life=12,
     cash_flow_projections=[2000000, 2500000, 3000000, 3200000, 3500000, 3500000, 3200000, 2800000, 2500000, 2000000, 1500000, 1000000],
     probability_of_success=0.70,
@@ -144,16 +151,17 @@ patent_valuation(
 
 **Agent:**
 1. Identify: Trademark/brand valuation
-2. Method: Relief from Royalty via `trademark_valuation`
+2. Method: Relief from Royalty — `valuation_ip` with `method="trademark"`; the library's own `method`
+   argument is surfaced as `brand_method`, because `method` selects the tool's method key
 3. Call tool:
 ```
-trademark_valuation(
+valuation_ip(method="trademark",
     revenue=50000000,
     profit_margin=0.20,
     brand_strength_index=0.75,
     discount_rate=0.12,
     useful_life=15,
-    method="relief_from_royalty"
+    brand_method="relief_from_royalty"
 )
 ```
 
@@ -163,7 +171,7 @@ trademark_valuation(
 
 **Agent:**
 ```
-build_up_discount_rate(
+valuation_discount_rate(method="build_up",
     risk_free_rate=0.04,
     equity_risk_premium=0.06,
     size_premium=0.04,

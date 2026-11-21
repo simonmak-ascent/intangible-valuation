@@ -1,3 +1,10 @@
+---
+name: Discount Rate Construction
+description: Build appropriate discount rates using CAPM, WACC, build-up method, and DLOM.
+category: valuation
+tools: [valuation_discount_rate]
+---
+
 # Discount Rate Construction Skill
 
 ## When to Use
@@ -12,10 +19,10 @@ Use this skill when a user asks to:
 
 ## Discount Rate Methods
 
-| Method | Formula | Best For | MCP Tool |
+| Method | Formula | Best For | Method key |
 |--------|---------|----------|----------|
-| Build-Up | r = Rf + ERP + Size + Industry + Specific | Private companies, no beta | `build_up_discount_rate` |
-| CAPM | r = Rf + β × (Rm − Rf) | Public companies, available beta | `capm_discount_rate` |
+| Build-Up | r = Rf + ERP + Size + Industry + Specific | Private companies, no beta | `build_up` |
+| CAPM | r = Rf + β × (Rm − Rf) | Public companies, available beta | `capm` |
 | WACC | (E/V)×Re + (D/V)×Rd×(1−Tc) | Enterprise-level, debt financing | `wacc` |
 
 ## Step-by-Step Workflow
@@ -49,7 +56,7 @@ Is the entity publicly traded with available beta?
 
 ```python
 # Calculate
-build_up_discount_rate(
+valuation_discount_rate(method="build_up",
     risk_free_rate=0.04, equity_risk_premium=0.06,
     size_premium=0.02, industry_risk_premium=0.01, specific_risk_premium=0.03,
 )
@@ -62,7 +69,7 @@ build_up_discount_rate(
 - `market_return` — Expected market return (typically Rf + ERP)
 
 ```python
-capm_discount_rate(risk_free_rate=0.04, beta=1.2, market_return=0.10)
+valuation_discount_rate(method="capm", risk_free_rate=0.04, beta=1.2, market_return=0.10)
 # Result: 11.20%
 ```
 
@@ -74,7 +81,7 @@ capm_discount_rate(risk_free_rate=0.04, beta=1.2, market_return=0.10)
 - `tax_rate` — Marginal tax rate
 
 ```python
-wacc(equity_value=700, debt_value=300, cost_of_equity=0.12, cost_of_debt=0.06, tax_rate=0.25)
+valuation_discount_rate(method="wacc", equity_value=700, debt_value=300, cost_of_equity=0.12, cost_of_debt=0.06, tax_rate=0.25)
 # Result: 9.75%
 ```
 
@@ -84,21 +91,21 @@ wacc(equity_value=700, debt_value=300, cost_of_equity=0.12, cost_of_debt=0.06, t
 For intangible asset valuations, TAB adjusts the discount rate to account for tax savings from asset amortization.
 
 ```python
-tax_amortization_benefit(discount_rate=0.16, useful_life=10, tax_rate=0.25, asset_value=1_000_000)
+valuation_discount_rate(method="tax_amortization_benefit", discount_rate=0.16, useful_life=10, tax_rate=0.25, asset_value=1_000_000)
 ```
 
 **Discount for Lack of Marketability (DLOM):**
 Finnerty average-strike put option model for restricted stock.
 
 ```python
-dlom_finnerty(restricted_period=1.0, volatility=0.35, risk_free_rate=0.04)
+valuation_discount_rate(method="dlom_finnerty", restricted_period=1.0, volatility=0.35, risk_free_rate=0.04)
 ```
 
 **Control Premium:**
 Adjustment when valuing controlling vs minority interests.
 
 ```python
-control_premium(minority_price=85, control_price=100)
+valuation_discount_rate(method="control_premium", minority_price=85, control_price=100)
 # Result: 17.65%
 ```
 
@@ -106,7 +113,7 @@ control_premium(minority_price=85, control_price=100)
 For cross-border valuations.
 
 ```python
-currency_adjusted_discount_rate(base_rate=0.12, currency_risk_premium=0.02, country_risk_premium=0.03)
+valuation_discount_rate(method="currency_adjusted", base_rate=0.12, currency_risk_premium=0.02, country_risk_premium=0.03)
 # Result: 17.00%
 ```
 
@@ -130,17 +137,20 @@ currency_adjusted_discount_rate(base_rate=0.12, currency_risk_premium=0.02, coun
 | In-process R&D | 18-30% | Highest risk, uncertain outcomes |
 | Goodwill (WACC) | 8-15% | Enterprise-level rate |
 
-## MCP Tools Reference
+## MCP Methods Reference
 
-| Tool | Category | Key Parameters |
+These are **methods**, called through the tool this skill's front matter names
+(`valuation_discount_rate`), as `{"method": "<name>", ...params}`.
+
+| Method | Category | Key Parameters |
 |------|----------|---------------|
-| `build_up_discount_rate` | Core | risk_free_rate, equity_risk_premium, size_premium, industry_risk_premium, specific_risk_premium |
-| `capm_discount_rate` | Core | risk_free_rate, beta, market_return |
+| `build_up` | Core | risk_free_rate, equity_risk_premium, size_premium, industry_risk_premium, specific_risk_premium |
+| `capm` | Core | risk_free_rate, beta, market_return |
 | `wacc` | Core | equity_value, debt_value, cost_of_equity, cost_of_debt, tax_rate |
 | `tax_amortization_benefit` | Core | discount_rate, useful_life, tax_rate, asset_value |
 | `dlom_finnerty` | Core | restricted_period, volatility, risk_free_rate |
 | `control_premium` | Core | minority_price, control_price |
-| `currency_adjusted_discount_rate` | Core | base_rate, currency_risk_premium, country_risk_premium |
+| `currency_adjusted` | Core | base_rate, currency_risk_premium, country_risk_premium |
 
 ## References
 - Chapter 2: Core Mathematics — Discount Rates
