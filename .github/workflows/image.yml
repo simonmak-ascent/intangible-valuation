@@ -23,13 +23,14 @@ name: image
 #   * the GHCR login follows the scan, and writes to a **per-job `DOCKER_CONFIG`** rather than the
 #     CLI default `$HOME/.docker/config.json`. Both jobs run as the same user on the same runner, so
 #     the default would let one job's `packages: write` token sit on disk while the other job's
-#     scanner parses untrusted image layers. Trivy needs no registry credential for a local tag; only
-#     the push does.
+#     scanner reads untrusted image content — layers in the engine job, an extracted
+#     tree in the web job. Trivy needs no registry credential for a local tag; only the push does.
 #
 #     Residual, stated rather than implied: `$RUNNER_TEMP` is private between *users*, not between
 #     concurrent jobs of the same user, so while one job is inside its push-and-logout window the
 #     other job runs as a UID that can read its credential file. Exploiting that needs code execution
-#     inside the scanner while it parses a layer. Serialising the two jobs would close it and is not
+#     inside the scanner while it reads image content, or in GNU tar while the web job extracts it as
+#     the docker-group user. Serialising the two jobs would close both and is not
 #     done here: it doubles the wall time of every dispatch, including the API-only one this
 #     workflow exists for.
 #
@@ -39,8 +40,10 @@ name: image
 # no in-workflow escape, and the remedy under that pressure is `|| true`, which destroys the gate.
 # It does not apply to the second: trivy's `--scanners` default is `[vuln, secret]`, and its
 # `IgnoreStatuses` (what `--ignore-unfixed` sets) reaches only the vulnerability filter. So a
-# credential baked into a layer blocks the push with no in-workflow waiver. That is intended,
-# because this job holds `packages: write` and a docker socket — and it is stated here rather than
+# credential left in the scanned tree blocks the push with no in-workflow waiver. For the web job
+# that tree is the flattened filesystem, so a credential deleted in a later layer — still travelling
+# in the image anyone can pull — is not caught, where the engine job's layer scan sees it.
+# Blocking is intended, because this job holds `packages: write` and a docker socket — and it is stated here rather than
 # discovered while looking for the escape hatch. The only suppression left is a committed ignore
 # file (trivy's default `--ignorefile` is `.trivyignore`, whose YAML form has a documented `secrets:`
 # section), which is a reviewable change rather than a flag, and is absent from this tree today.
@@ -147,21 +150,31 @@ jobs:
       # Before the push. `DST` arrives through `env:` rather than `${{ }}` interpolation because, on
       # the `SOURCE_IMAGE` path, the tag half is dispatcher-supplied and would otherwise be parsed by
       # the shell.
-      - name: Scan before publishing
+      # This runner cannot serialise this image's layers. Measured 2026-11-21 on apg-ecs-01:
+      # `docker save` writes 12 KB for a 438 MB image, `docker save --platform` answers "no suitable
+      # export target", and trivy's docker source fails with "file blobs/sha256/… not found in tar".
+      # The engine image built on the same store exports normally (68 MB), and `docker export` of a
+      # container from this one yields the complete 304 MB tree — the image is sound, the export is
+      # not, and without buildx there is no other form to hand trivy.
+      #
+      # So this scan walks the flattened filesystem the container presents, which is the exact tree
+      # that runs. Recorded rather than implied: a rootfs scan sees what runs, not bytes left in a
+      # lower layer that the final filesystem deletes, so it is weaker than the layer scan the
+      # `image-api` job performs. It is the strongest scan available on this runner, and the export
+      # defect is tracked as handover Item 6 rather than worked around silently.
+      - name: Scan the running filesystem, not the image layers
         env:
           DST: ${{ steps.build.outputs.dst }}
           # The runner is persistent, so the default cache location would carry the vulnerability DB
-          # from one dispatch into the next: identical image bytes would be judged against different
-          # databases, and a poisoned cache would suppress findings with nothing in the log to say
-          # so. `$RUNNER_TEMP` goes away with the job. Step-level because the `runner` context is not
-          # available in workflow- or job-level `env:` — measured, not assumed: actionlint rejects
-          # both with `context "runner" is not allowed here`.
+          # from one dispatch into the next: identical bytes judged against different databases, and a
+          # poisoned cache suppressing findings with nothing in the log to say so. `$RUNNER_TEMP` goes
+          # away with the job. Step-level because the `runner` context is not available in workflow- or
+          # job-level `env:` — measured: actionlint rejects both.
           TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
         run: |
           set -eu
-          # The database is fetched and identified BEFORE the gate. `--exit-code 1` under `set -e`
-          # aborts the script, so anything after it never reaches the summary — and a blocked scan is
-          # the verdict that most needs a database identity, since the DB comes from a rolling tag.
+          # Populate and identify the database BEFORE the gate: `--exit-code 1` under `set -e` aborts
+          # the script, and a blocked scan is the verdict that most needs a database identity.
           trivy image --download-db-only --no-progress
           {
             echo "### scan"
@@ -173,23 +186,48 @@ jobs:
             trivy --version
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress "$DST"
+          cid="$(docker create "$DST")"
+          # The export is the operation with the known defect, so it is also the likely failure path:
+          # remove the container even when it aborts, or a persistent runner accumulates them.
+          trap 'docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
+          docker export "$cid" -o "$RUNNER_TEMP/rootfs.tar"
+          docker rm "$cid" >/dev/null
+          trap - EXIT
+          mkdir -p "$RUNNER_TEMP/rootfs"
+          tar -xf "$RUNNER_TEMP/rootfs.tar" -C "$RUNNER_TEMP/rootfs"
+          # `trivy rootfs --exit-code 1` fails only when findings exist: its Exit() returns nil unless
+          # Results.Failed(), and that is false for an empty result set. A scan of nothing therefore
+          # passes the gate — which is exactly what a truncated export produces, the failure this
+          # step exists to work around (measured: 12 KB of `docker save` for a 438 MB image). Assert
+          # the tree is the image before scanning it, and leave a marker for the advisory step.
+          test -s "$RUNNER_TEMP/rootfs/app/server.js" || {
+            echo "::error::$RUNNER_TEMP/rootfs/app/server.js is missing: the export did not produce the image tree, or the run stage no longer places it there — either way a scan of nothing passes --exit-code 1" >&2
+            exit 1
+          }
+          touch "$RUNNER_TEMP/rootfs.ok"
+          {
+            echo ""
+            echo "- scanning: the flattened filesystem (this runner cannot export the image's layers)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          trivy rootfs --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --no-progress "$RUNNER_TEMP/rootfs"
 
       # `--ignore-unfixed` is a report filter, not a threshold: those findings leave the scanner's
-      # output entirely, so the gate above cannot show them. This pass prints them for the record.
-      # `--exit-code 0` and `continue-on-error` both apply, because a disclosure step must never
-      # withhold an image that already passed the gate.
+      # output entirely, so the gate above cannot show them. This pass prints them for the record, and
+      # `continue-on-error` plus `always()` keep it from withholding an image that already passed.
       - name: Report HIGH and CRITICAL including unfixed — advisory
         continue-on-error: true
         # `always()` so it still runs when the gate above blocks — that is when the unfixed list is
         # most useful — and the `outcome` check so it stays inert when no image was built.
         if: always() && steps.build.outcome == 'success'
         env:
-          DST: ${{ steps.build.outputs.dst }}
           TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
         run: |
           set +e
-          out="$(trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress "$DST" 2>&1)"
+          if [ -f "$RUNNER_TEMP/rootfs.ok" ]; then
+            out="$(trivy rootfs --exit-code 0 --severity HIGH,CRITICAL --no-progress "$RUNNER_TEMP/rootfs" 2>&1)"
+          else
+            out="no complete extracted filesystem — the scan step did not reach extraction, or did not finish it"
+          fi
           total="$(printf '%s\n' "$out" | wc -l)"
           set -e
           {
@@ -370,7 +408,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Per-job, not the CLI default `$HOME/.docker`. Both jobs run as the same user on the same
           # runner, so the default would leave one job's `packages: write` token on disk while the
-          # other job's scanner parses untrusted image layers.
+          # other job's scanner reads untrusted image content.
           DOCKER_CONFIG: ${{ runner.temp }}/docker
         run: |
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
