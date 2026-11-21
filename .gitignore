@@ -137,3 +137,14 @@ playwright-report/
 
 # all working documents live here, untracked
 .worknotes/
+
+# Plans, handovers and session notes never enter a commit, wherever they are written.
+# `.worknotes/` above is where they normally live; these catch one dropped at the root.
+PLAN*.md
+HANDOVER*.md
+*.plan.md
+
+# Test-run output beyond the two report directories already listed.
+.vitest/
+.nyc_output/
+blob-report/
